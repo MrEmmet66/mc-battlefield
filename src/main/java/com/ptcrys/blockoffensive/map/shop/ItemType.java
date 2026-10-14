@@ -156,27 +156,27 @@ public enum ItemType implements INamedType {
                 addGun(weaponTemplates, "cz75", 500);
                 addGun(weaponTemplates, "b93r", 600);
                 addGun(weaponTemplates, "deagle", 700);
-                // ПП: фарм-класс (награда 600), окупаются за 2-4 килла
-                addGun(weaponTemplates, "uzi", 1200);
-                addGun(weaponTemplates, "hk_mp5a5", 1500);
-                addGun(weaponTemplates, "ump45", 1700);
-                addGun(weaponTemplates, "p90", 2000);
-                addGun(weaponTemplates, "vector45", 2300);
+                // ПП: дешёвый мид-гейм, 1-2 килла на ствол
+                addGun(weaponTemplates, "uzi", 500);
+                addGun(weaponTemplates, "hk_mp5a5", 700);
+                addGun(weaponTemplates, "ump45", 800);
+                addGun(weaponTemplates, "p90", 900);
+                addGun(weaponTemplates, "vector45", 1000);
                 // Дробовики: высокий урон вблизи (награда 900)
                 addGun(weaponTemplates, "db_short", 1100);
                 addGun(weaponTemplates, "m870", 1700);
                 addGun(weaponTemplates, "m1014", 2200);
                 addGun(weaponTemplates, "spas_12", 2500);
-                addGun(weaponTemplates, "aa12", 3800);
-                // Винтовки: ядро (награда 300), ~9-13 киллов на ствол
-                addGun(weaponTemplates, "ak47", 2700);
-                addGun(weaponTemplates, "m16a4", 2900);
-                addGun(weaponTemplates, "m4a1", 3100);
-                addGun(weaponTemplates, "aug", 3200);
-                addGun(weaponTemplates, "hk416d", 3300);
-                addGun(weaponTemplates, "scar_l", 3500);
-                addGun(weaponTemplates, "g36k", 3600);
-                addGun(weaponTemplates, "fn_fal", 3800);
+                addGun(weaponTemplates, "aa12", 2000);
+                // Винтовки: ядро. Стартовые 3000 = 2 АК или АК + броник + патроны
+                addGun(weaponTemplates, "ak47", 1500);
+                addGun(weaponTemplates, "m16a4", 1200);
+                addGun(weaponTemplates, "m4a1", 1600);
+                addGun(weaponTemplates, "aug", 1300);
+                addGun(weaponTemplates, "hk416d", 1600);
+                addGun(weaponTemplates, "scar_l", 1700);
+                addGun(weaponTemplates, "g36k", 1400);
+                addGun(weaponTemplates, "fn_fal", 1900);
                 // Снайперы: налог на кемп (награда всего 100), цены сдержанные
                 addGun(weaponTemplates, "m700", 3200);
                 addGun(weaponTemplates, "ai_awp", 4750);

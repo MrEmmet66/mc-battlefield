@@ -716,6 +716,27 @@ public abstract class CSMap extends BaseRoundMap<String, CSRoundResultReason> {
     }
 
     /**
+     * Убирает Glock-17 из инвентаря перед дропом: бесплатный стартовый ствол
+     * не должен заспамливать землю. Вызывать до dropAll().
+     */
+    protected void stripGlockDrops(ServerPlayer player) {
+        if (!ModList.get().isLoaded("tacz")) return;
+        try {
+            ResourceLocation glockId = new ResourceLocation("tacz", "glock_17");
+            player.getInventory().clearOrCountMatchingItems(stack -> {
+                if (!GunCompatManager.isGun(stack)) return false;
+                try {
+                    return glockId.equals(GunCompatManager.findProvider(stack).getGunId(stack));
+                } catch (Exception ignored) {
+                    return false;
+                }
+            }, -1, player.inventoryMenu.getCraftSlots());
+        } catch (Throwable t) {
+            com.phasetranscrystal.fpsmatch.FPSMatch.LOGGER.warn("[BO-Death] glock strip failed: {}", t.toString());
+        }
+    }
+
+    /**
      * Дефолтный стартовый кит (заряженный Glock-17 без запасных патронов),
      * если на карте киты не настроены. Иначе игроки спавнятся с пустыми
      * руками и умирают с inv=0 — лутать нечего.
