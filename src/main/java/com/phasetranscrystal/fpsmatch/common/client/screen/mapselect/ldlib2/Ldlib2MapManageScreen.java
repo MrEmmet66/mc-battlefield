@@ -5,13 +5,14 @@ import com.lowdragmc.lowdraglib2.gui.ui.UI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.math.Size;
 import com.phasetranscrystal.fpsmatch.FPSMatch;
 import com.phasetranscrystal.fpsmatch.common.client.minimap.ui.ldlib2.editor.MinimapEditorScreens;
 import com.phasetranscrystal.fpsmatch.common.client.screen.ldlib2.FPSMLdlib2Theme;
 import com.phasetranscrystal.fpsmatch.common.client.screen.mapselect.FPSMMapSelectScreens;
+import com.phasetranscrystal.fpsmatch.common.client.screen.mapselect.MapThumbnailCache;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomActionC2SPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomDetail;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.appliedenergistics.yoga.YogaPositionType;
@@ -29,6 +30,7 @@ public final class Ldlib2MapManageScreen extends Ldlib2MapChildScreen {
     private final Button settingsButton;
     private final Button shopButton;
     private final Button minimapButton;
+    private final Button captureButton;
 
     public Ldlib2MapManageScreen(MapRoomDetail detail, Screen parent) {
         this(build(), detail, parent);
@@ -46,6 +48,7 @@ public final class Ldlib2MapManageScreen extends Ldlib2MapChildScreen {
         this.settingsButton = parts.settings();
         this.shopButton = parts.shop();
         this.minimapButton = parts.minimap();
+        this.captureButton = parts.capture();
         startButton.setOnClick(e -> send(MapRoomActionC2SPacket.Action.DEBUG_START));
         resetButton.setOnClick(e -> send(MapRoomActionC2SPacket.Action.DEBUG_RESET));
         newRoundButton.setOnClick(e -> send(MapRoomActionC2SPacket.Action.DEBUG_NEW_ROUND));
@@ -54,7 +57,9 @@ public final class Ldlib2MapManageScreen extends Ldlib2MapChildScreen {
         settingsButton.setOnClick(e -> FPSMMapSelectScreens.openChild(new Ldlib2MapSettingsScreen(this.detail, this)));
         shopButton.setOnClick(e -> FPSMMapSelectScreens.openChild(new Ldlib2MapShopScreen(this.detail, this)));
         minimapButton.setOnClick(e -> MinimapEditorScreens.open(this.detail, this));
+        captureButton.setOnClick(e -> captureThumbnail());
         parts.back().setOnClick(e -> onClose());
+        parts.close().setOnClick(e -> onClose());
         refreshContent();
     }
 
@@ -76,6 +81,15 @@ public final class Ldlib2MapManageScreen extends Ldlib2MapChildScreen {
         settingsButton.setActive(op);
         shopButton.setActive(op && !detail.editableShops().isEmpty());
         minimapButton.setActive(op);
+        captureButton.setActive(op);
+    }
+
+    private void captureThumbnail() {
+        MapThumbnailCache.requestForce(detail.summary().gameType(), detail.summary().mapName());
+        if (Minecraft.getInstance().player != null) {
+            Minecraft.getInstance().player.displayClientMessage(
+                    Component.translatable("gui.fpsm.map_select.capture_thumbnail"), false);
+        }
     }
 
     private void send(MapRoomActionC2SPacket.Action action) {
@@ -83,43 +97,51 @@ public final class Ldlib2MapManageScreen extends Ldlib2MapChildScreen {
     }
 
     private static Parts build() {
-        UIElement root = new UIElement().setId("fpsmatch.map_manage.root");
-        root.layout(layout -> layout.widthPercent(100).heightPercent(100));
-        FPSMLdlib2Theme.root(root);
-        Label header = label("fpsmatch.map_manage.header", Component.translatable("gui.fpsm.map_select.manage.title"));
-        header.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(18).right(18).top(12).height(20));
-        FPSMLdlib2Theme.title(header);
+        Chrome chrome = chrome("fpsmatch.map_manage.root", Component.translatable("gui.fpsm.map_select.manage.title"));
+
         Label subtitle = label("fpsmatch.map_manage.subtitle", Component.empty());
-        subtitle.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(18).right(18).top(34).height(16));
+        subtitle.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(12).right(12).top(32).height(14));
         FPSMLdlib2Theme.muted(subtitle);
+
         UIElement panel = new UIElement().setId("fpsmatch.map_manage.panel");
-        panel.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(16).right(16).top(56).bottom(56));
-        FPSMLdlib2Theme.panel(panel);
+        panel.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(10).right(10).top(50).bottom(50));
+        panel.style(s -> s.background(FPSMLdlib2Theme.roundedTexture(
+                FPSMLdlib2Theme.CARD_BG, FPSMLdlib2Theme.BORDER, FPSMLdlib2Theme.CARD_RADIUS)));
+
         Label debugTitle = label("fpsmatch.map_manage.debug_title", Component.translatable("gui.fpsm.map_select.manage.title"));
-        debugTitle.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(14).top(12).height(16));
+        debugTitle.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(14).top(8).height(14));
         FPSMLdlib2Theme.sectionTitle(debugTitle);
-        Button start = medium("fpsmatch.map_manage.start", "gui.fpsm.map_select.debug.start", 14, 36);
-        Button reset = medium("fpsmatch.map_manage.reset", "gui.fpsm.map_select.debug.reset", 118, 36);
-        Button newRound = medium("fpsmatch.map_manage.new_round", "gui.fpsm.map_select.debug.new_round", 222, 36);
-        Button cleanup = medium("fpsmatch.map_manage.cleanup", "gui.fpsm.map_select.debug.cleanup", 326, 36);
-        Button switchBtn = medium("fpsmatch.map_manage.switch", "gui.fpsm.map_select.debug.switch", 430, 36);
-        Button settings = medium("fpsmatch.map_manage.settings", "gui.fpsm.map_select.settings", 14, 72);
-        Button shop = medium("fpsmatch.map_manage.shop", "gui.fpsm.map_detail.edit_shop", 118, 72);
-        Button minimap = medium("fpsmatch.map_manage.minimap", "gui.fpsm.map_detail.edit_minimap", 222, 72);
+
+        Button start = medium("fpsmatch.map_manage.start", "gui.fpsm.map_select.debug.start", 10, 28);
+        Button reset = medium("fpsmatch.map_manage.reset", "gui.fpsm.map_select.debug.reset", 108, 28);
+        Button newRound = medium("fpsmatch.map_manage.new_round", "gui.fpsm.map_select.debug.new_round", 206, 28);
+        Button cleanup = medium("fpsmatch.map_manage.cleanup", "gui.fpsm.map_select.debug.cleanup", 304, 28);
+        Button switchBtn = medium("fpsmatch.map_manage.switch", "gui.fpsm.map_select.debug.switch", 402, 28);
+        Button settings = medium("fpsmatch.map_manage.settings", "gui.fpsm.map_select.settings", 10, 58);
+        Button shop = medium("fpsmatch.map_manage.shop", "gui.fpsm.map_detail.edit_shop", 108, 58);
+        Button minimap = medium("fpsmatch.map_manage.minimap", "gui.fpsm.map_detail.edit_minimap", 206, 58);
+        Button capture = medium("fpsmatch.map_manage.capture", "gui.fpsm.map_select.capture_thumbnail", 304, 58);
+
         FPSMLdlib2Theme.button(start, FPSMLdlib2Theme.ButtonKind.PRIMARY);
-        for (Button b : new Button[]{reset, newRound, cleanup, switchBtn, settings, shop, minimap}) {
+        for (Button b : new Button[]{reset, newRound, cleanup, switchBtn, settings, shop, minimap, capture}) {
             FPSMLdlib2Theme.button(b, FPSMLdlib2Theme.ButtonKind.SECONDARY);
         }
+
         Label permission = label("fpsmatch.map_manage.permission", Component.empty());
-        permission.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(14).right(14).top(112).height(20));
+        permission.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(14).right(14).top(92).height(18));
         FPSMLdlib2Theme.status(permission, FPSMLdlib2Theme.WARNING);
-        panel.addChildren(debugTitle, start, reset, newRound, cleanup, switchBtn, settings, shop, minimap, permission);
-        Button back = medium("fpsmatch.map_manage.back", "gui.back", 18, 0);
-        back.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(18).bottom(16).width(96).height(24));
+        panel.addChildren(debugTitle, start, reset, newRound, cleanup, switchBtn, settings, shop, minimap, capture, permission);
+
+        Button back = new Button();
+        back.setId("fpsmatch.map_manage.back");
+        back.setText(Component.translatable("gui.back"));
+        back.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(10).bottom(14).width(96).height(24));
         FPSMLdlib2Theme.button(back, FPSMLdlib2Theme.ButtonKind.QUIET);
-        root.addChildren(header, subtitle, panel, back);
-        return new Parts(ModularUI.of(UI.of(root, size -> Size.of(size.getWidth(), size.getHeight()))),
-                subtitle, permission, start, reset, newRound, cleanup, switchBtn, settings, shop, minimap, back);
+
+        chrome.root().addChildren(subtitle, panel, back);
+        return new Parts(ModularUI.of(UI.of(chrome.root(),
+                        screenSize -> MapSelectionLayoutModel.windowSize(screenSize.getWidth(), screenSize.getHeight()))),
+                subtitle, permission, start, reset, newRound, cleanup, switchBtn, settings, shop, minimap, capture, back, chrome.close());
     }
 
     private static Label label(String id, Component text) {
@@ -133,10 +155,11 @@ public final class Ldlib2MapManageScreen extends Ldlib2MapChildScreen {
         Button button = new Button();
         button.setId(id);
         button.setText(Component.translatable(key));
-        button.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(left).top(top).width(96).height(24));
+        button.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(left).top(top).width(92).height(24));
         return button;
     }
 
     private record Parts(ModularUI ui, Label subtitle, Label permission, Button start, Button reset, Button newRound,
-                         Button cleanup, Button switchBtn, Button settings, Button shop, Button minimap, Button back) {}
+                         Button cleanup, Button switchBtn, Button settings, Button shop, Button minimap, Button capture, Button back,
+                         Button close) {}
 }

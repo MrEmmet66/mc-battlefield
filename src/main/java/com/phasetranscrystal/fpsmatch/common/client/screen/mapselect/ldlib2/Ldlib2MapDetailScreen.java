@@ -6,7 +6,6 @@ import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.VirtualScrollerView;
-import com.lowdragmc.lowdraglib2.math.Size;
 import com.phasetranscrystal.fpsmatch.FPSMatch;
 import com.phasetranscrystal.fpsmatch.common.client.screen.ldlib2.FPSMLdlib2Theme;
 import com.phasetranscrystal.fpsmatch.common.client.screen.mapselect.FPSMMapSelectScreens;
@@ -51,6 +50,7 @@ public final class Ldlib2MapDetailScreen extends Ldlib2MapChildScreen {
         inviteButton.setOnClick(event -> FPSMMapSelectScreens.openChild(new Ldlib2MapInviteScreen(this.detail, this)));
         manageButton.setOnClick(event -> FPSMMapSelectScreens.openChild(new Ldlib2MapManageScreen(this.detail, this)));
         parts.back().setOnClick(event -> onClose());
+        parts.close().setOnClick(event -> onClose());
         refreshContent();
     }
 
@@ -85,11 +85,15 @@ public final class Ldlib2MapDetailScreen extends Ldlib2MapChildScreen {
         boolean canJoin = !joined && !summary.full() && (!summary.started() || summary.allowJoinInProgress());
         boolean teamMode = !isFreeForAll(summary);
         joinButton.setActive(canJoin || (joined && teamMode));
+        FPSMLdlib2Theme.button(joinButton, FPSMLdlib2Theme.ButtonKind.PRIMARY);
         joinButton.setText(Component.translatable(
                 joined && teamMode ? "gui.fpsm.team_manage.button" : "gui.fpsm.map_select.join"));
         leaveButton.setActive(joined);
+        FPSMLdlib2Theme.button(leaveButton, FPSMLdlib2Theme.ButtonKind.DANGER);
         inviteButton.setActive(joined);
+        FPSMLdlib2Theme.button(inviteButton, FPSMLdlib2Theme.ButtonKind.SECONDARY);
         manageButton.setActive(summary.currentPlayerOp());
+        FPSMLdlib2Theme.button(manageButton, FPSMLdlib2Theme.ButtonKind.SECONDARY);
         manageButton.setVisible(summary.currentPlayerOp());
     }
 
@@ -123,24 +127,24 @@ public final class Ldlib2MapDetailScreen extends Ldlib2MapChildScreen {
     }
 
     private static Parts build() {
-        UIElement root = new UIElement().setId("fpsmatch.map_detail.root");
-        root.layout(layout -> layout.widthPercent(100).heightPercent(100));
-        FPSMLdlib2Theme.root(root);
-        Label header = label("fpsmatch.map_detail.header", Component.translatable("gui.fpsm.map_select.detail.title"));
-        header.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(18).right(18).top(12).height(20));
-        FPSMLdlib2Theme.title(header);
+        Chrome chrome = chrome("fpsmatch.map_detail.root", Component.translatable("gui.fpsm.map_select.detail.title"));
+
         Label titleLabel = label("fpsmatch.map_detail.title", Component.empty());
-        titleLabel.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(18).right(18).top(36).height(18));
+        titleLabel.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(12).right(12).top(32).height(16));
         FPSMLdlib2Theme.sectionTitle(titleLabel);
+
         UIElement panel = new UIElement().setId("fpsmatch.map_detail.panel");
-        panel.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(16).right(16).top(58).bottom(56));
-        FPSMLdlib2Theme.panel(panel);
+        panel.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(10).right(10).top(52).bottom(50));
+        panel.style(s -> s.background(FPSMLdlib2Theme.roundedTexture(
+                FPSMLdlib2Theme.CARD_BG, FPSMLdlib2Theme.BORDER, FPSMLdlib2Theme.CARD_RADIUS)));
+
         Label infoLabel = label("fpsmatch.map_detail.info", Component.empty());
-        infoLabel.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(14).right(14).top(12).height(96));
+        infoLabel.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(14).right(14).top(10).height(92));
         FPSMLdlib2Theme.body(infoLabel);
+
         VirtualScrollerView<MapRoomPlayerInfo> players = new VirtualScrollerView<>();
         players.setId("fpsmatch.map_detail.players");
-        players.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(12).right(12).top(114).bottom(12));
+        players.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(12).right(12).top(106).bottom(10));
         players.virtualScrollerViewStyle(style -> style.estimatedItemHeight(24f));
         players.setItemUIProvider(player -> {
             Label row = label("fpsmatch.map_detail.player." + player.uuid(), Component.literal(
@@ -152,19 +156,22 @@ public final class Ldlib2MapDetailScreen extends Ldlib2MapChildScreen {
             return row;
         });
         panel.addChildren(infoLabel, players);
-        Button join = action("fpsmatch.map_detail.join", "gui.fpsm.map_select.join", 18);
-        Button leave = action("fpsmatch.map_detail.leave", "gui.fpsm.map_select.leave", 112);
-        Button invite = action("fpsmatch.map_detail.invite", "gui.fpsm.map_select.invite", 206);
-        Button manage = action("fpsmatch.map_detail.manage", "gui.fpsm.map_select.manage", 300);
-        Button back = action("fpsmatch.map_detail.back", "gui.back", 394);
+
+        Button join = action("fpsmatch.map_detail.join", "gui.fpsm.map_select.join", 10);
+        Button leave = action("fpsmatch.map_detail.leave", "gui.fpsm.map_select.leave", 104);
+        Button invite = action("fpsmatch.map_detail.invite", "gui.fpsm.map_select.invite", 198);
+        Button manage = action("fpsmatch.map_detail.manage", "gui.fpsm.map_select.manage", 292);
+        Button back = action("fpsmatch.map_detail.back", "gui.back", 386);
         FPSMLdlib2Theme.button(join, FPSMLdlib2Theme.ButtonKind.PRIMARY);
         FPSMLdlib2Theme.button(leave, FPSMLdlib2Theme.ButtonKind.DANGER);
         FPSMLdlib2Theme.button(invite, FPSMLdlib2Theme.ButtonKind.SECONDARY);
         FPSMLdlib2Theme.button(manage, FPSMLdlib2Theme.ButtonKind.SECONDARY);
         FPSMLdlib2Theme.button(back, FPSMLdlib2Theme.ButtonKind.QUIET);
-        root.addChildren(header, titleLabel, panel, join, leave, invite, manage, back);
-        return new Parts(ModularUI.of(UI.of(root, size -> Size.of(size.getWidth(), size.getHeight()))),
-                titleLabel, infoLabel, players, join, leave, invite, manage, back);
+
+        chrome.root().addChildren(titleLabel, panel, join, leave, invite, manage, back);
+        return new Parts(ModularUI.of(UI.of(chrome.root(),
+                        screenSize -> MapSelectionLayoutModel.windowSize(screenSize.getWidth(), screenSize.getHeight()))),
+                titleLabel, infoLabel, players, join, leave, invite, manage, back, chrome.close());
     }
 
     private static Label label(String id, Component text) {
@@ -178,10 +185,10 @@ public final class Ldlib2MapDetailScreen extends Ldlib2MapChildScreen {
         Button button = new Button();
         button.setId(id);
         button.setText(Component.translatable(key));
-        button.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(left).bottom(16).width(88).height(24));
+        button.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(left).bottom(14).width(88).height(24));
         return button;
     }
 
     private record Parts(ModularUI ui, Label titleLabel, Label infoLabel, VirtualScrollerView<MapRoomPlayerInfo> playerList,
-                         Button join, Button leave, Button invite, Button manage, Button back) {}
+                         Button join, Button leave, Button invite, Button manage, Button back, Button close) {}
 }

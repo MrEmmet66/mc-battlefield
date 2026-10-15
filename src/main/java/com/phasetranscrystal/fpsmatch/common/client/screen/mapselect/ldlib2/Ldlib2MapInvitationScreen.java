@@ -20,8 +20,11 @@ import org.appliedenergistics.yoga.YogaPositionType;
 
 import java.util.UUID;
 
-/** Incoming map-room invitation dialog. */
+/** Incoming map-room invitation dialog, drawn as a compact centred translucent window. */
 public final class Ldlib2MapInvitationScreen extends ModularUIScreen {
+    private static final int WIDTH = 360;
+    private static final int HEIGHT = 176;
+
     private final MapRoomInvitationS2CPacket invitation;
     private final Screen parent;
 
@@ -35,6 +38,7 @@ public final class Ldlib2MapInvitationScreen extends ModularUIScreen {
         this.parent = parent;
         parts.accept().setOnClick(e -> accept());
         parts.reject().setOnClick(e -> reject());
+        parts.close().setOnClick(e -> reject());
     }
 
     public Screen parentScreen() {
@@ -43,7 +47,16 @@ public final class Ldlib2MapInvitationScreen extends ModularUIScreen {
 
     @Override
     public void renderBackground(GuiGraphics graphics) {
-        graphics.fill(0, 0, this.width, this.height, 0xC0101010);
+        graphics.fill(0, 0, this.width, this.height, FPSMLdlib2Theme.SCRIM);
+    }
+
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        renderBackground(graphics);
+        FPSMLdlib2Theme.drawWindowShadow(graphics,
+                Math.round(modularUI.getLeftPos()), Math.round(modularUI.getTopPos()),
+                Math.round(modularUI.getWidth()), Math.round(modularUI.getHeight()));
+        super.render(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
@@ -62,12 +75,6 @@ public final class Ldlib2MapInvitationScreen extends ModularUIScreen {
         super.removed();
     }
 
-    @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
-        super.render(graphics, mouseX, mouseY, partialTick);
-    }
-
     private void accept() {
         FPSMClient.getGlobalData().clearMapRoomInvitation();
         FPSMatch.sendToServer(new MapRoomActionC2SPacket(
@@ -83,43 +90,46 @@ public final class Ldlib2MapInvitationScreen extends ModularUIScreen {
 
     private static Parts build(MapRoomInvitationS2CPacket invitation) {
         UIElement root = new UIElement().setId("fpsmatch.map_invitation.root");
-        root.layout(layout -> layout.widthPercent(100).heightPercent(100));
-        FPSMLdlib2Theme.root(root);
+        root.layout(l -> l.widthPercent(100).heightPercent(100));
+        FPSMLdlib2Theme.window(root);
 
-        UIElement panel = new UIElement().setId("fpsmatch.map_invitation.panel");
-        panel.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE)
-                .leftPercent(50).topPercent(50).width(340).height(150)
-                .marginLeft(-170).marginTop(-75));
-        FPSMLdlib2Theme.panel(panel);
+        UIElement highlight = new UIElement().setId("fpsmatch.map_invitation.highlight");
+        highlight.setAllowHitTest(false);
+        FPSMLdlib2Theme.windowHighlight(highlight);
+        highlight.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(1).top(1).right(1).height(1));
 
         Label title = label("fpsmatch.map_invitation.title", Component.translatable("gui.fpsm.map_select.invitation.title"));
-        title.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(16).right(16).top(14).height(18));
-        FPSMLdlib2Theme.title(title);
+        title.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(14).right(40).top(8).height(16));
+        FPSMLdlib2Theme.windowTitle(title);
+
+        Button close = new Button();
+        close.setId("fpsmatch.map_invitation.close");
+        FPSMLdlib2Theme.iconButton(close, "\u00D7");
+        close.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).right(8).top(5).width(22).height(22));
 
         Label message = label("fpsmatch.map_invitation.message", invitation.message());
-        message.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(16).right(16).top(42).height(18));
+        message.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(16).right(16).top(42).height(18));
         FPSMLdlib2Theme.body(message);
 
         Label room = label("fpsmatch.map_invitation.room",
                 Component.literal(invitation.gameType() + " / " + invitation.mapName()));
-        room.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(16).right(16).top(64).height(16));
+        room.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(16).right(16).top(64).height(16));
         FPSMLdlib2Theme.muted(room);
 
         Button accept = new Button();
-            accept.setId("fpsmatch.map_invitation.accept");
-            accept.setText(Component.translatable("gui.fpsm.map_select.invitation.accept"));
-        accept.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(24).bottom(18).width(130).height(26));
+        accept.setId("fpsmatch.map_invitation.accept");
+        accept.setText(Component.translatable("gui.fpsm.map_select.invitation.accept"));
+        accept.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(24).bottom(18).width(140).height(26));
         FPSMLdlib2Theme.button(accept, FPSMLdlib2Theme.ButtonKind.PRIMARY);
 
         Button reject = new Button();
-            reject.setId("fpsmatch.map_invitation.reject");
-            reject.setText(Component.translatable("gui.fpsm.map_select.invitation.reject"));
-        reject.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).right(24).bottom(18).width(130).height(26));
+        reject.setId("fpsmatch.map_invitation.reject");
+        reject.setText(Component.translatable("gui.fpsm.map_select.invitation.reject"));
+        reject.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).right(24).bottom(18).width(140).height(26));
         FPSMLdlib2Theme.button(reject, FPSMLdlib2Theme.ButtonKind.DANGER);
 
-        panel.addChildren(title, message, room, accept, reject);
-        root.addChild(panel);
-        return new Parts(ModularUI.of(UI.of(root, size -> Size.of(size.getWidth(), size.getHeight()))), accept, reject);
+        root.addChildren(highlight, title, close, message, room, accept, reject);
+        return new Parts(ModularUI.of(UI.of(root, size -> Size.of(WIDTH, HEIGHT))), accept, reject, close);
     }
 
     private static Label label(String id, Component text) {
@@ -129,5 +139,5 @@ public final class Ldlib2MapInvitationScreen extends ModularUIScreen {
         return label;
     }
 
-    private record Parts(ModularUI ui, Button accept, Button reject) {}
+    private record Parts(ModularUI ui, Button accept, Button reject, Button close) {}
 }

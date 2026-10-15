@@ -29,7 +29,9 @@ import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomReadyStateS
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomToastS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapSelectionAccessS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapSelectionSnapshotS2CPacket;
+import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapThumbnailS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.client.music.FPSClientMusicManager;
+import com.phasetranscrystal.fpsmatch.common.client.screen.mapselect.MapThumbnailCache;
 import com.phasetranscrystal.fpsmatch.common.packet.shop.OpenShopConfigToolScreenS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.shop.ShopDataSlotS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.shop.ShopMoneyS2CPacket;
@@ -247,6 +249,10 @@ public final class FPSMClientPacketHandlers {
         if (minecraft.player != null) {
             minecraft.player.displayClientMessage(packet.message(), packet.error());
         }
+    }
+
+    public static void handleMapThumbnail(MapThumbnailS2CPacket packet) {
+        MapThumbnailCache.store(packet.gameType(), packet.mapName(), packet.width(), packet.height(), packet.pixels());
     }
 
     public static void handleMapRoomInvitation(MapRoomInvitationS2CPacket packet) {

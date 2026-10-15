@@ -322,6 +322,7 @@ public class FPSMUtil {
      * use dummy ammo
      */
     public static void fixGunItem(@NotNull ItemStack itemStack, @NotNull IGunProvider provider) {
+        provider.ensureValidFireMode(itemStack);
         provider.getGunData(itemStack).ifPresent(gunData -> {
             provider.setCurrentAmmo(itemStack, gunData.getAmmoAmount());
         });
@@ -336,6 +337,7 @@ public class FPSMUtil {
      * use dummy ammo
      */
     public static void resetGunAmmo(ItemStack itemStack, IGunProvider provider) {
+        provider.ensureValidFireMode(itemStack);
         provider.getGunData(itemStack).ifPresent(gunData -> {
             provider.setCurrentAmmo(itemStack, gunData.getAmmoAmount());
             provider.useDummyAmmo(itemStack);

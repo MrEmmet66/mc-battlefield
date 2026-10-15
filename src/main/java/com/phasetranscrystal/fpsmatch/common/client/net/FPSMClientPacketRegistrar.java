@@ -30,6 +30,7 @@ import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomReadyStateS
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomToastS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapSelectionAccessS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapSelectionSnapshotS2CPacket;
+import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapThumbnailS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.shop.ShopDataSlotS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.shop.ShopMoneyS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.team.FPSMAddTeamS2CPacket;
@@ -130,6 +131,7 @@ public final class FPSMClientPacketRegistrar {
         ClientPacketRegistry.register(MapRoomReadyStateS2CPacket.class, FPSMClientPacketHandlers::handleMapRoomReadyState);
         ClientPacketRegistry.register(MapRoomToastS2CPacket.class, FPSMClientPacketHandlers::handleMapRoomToast);
         ClientPacketRegistry.register(MapRoomInvitationS2CPacket.class, FPSMClientPacketHandlers::handleMapRoomInvitation);
+        ClientPacketRegistry.register(MapThumbnailS2CPacket.class, FPSMClientPacketHandlers::handleMapThumbnail);
         ClientPacketRegistry.register(TeamManageResultS2CPacket.class, FPSMClientPacketHandlers::handleTeamManageResult);
         ClientPacketRegistry.register(SpectatorTargetS2CPacket.class, SpectatorTargetClientHandler::handle);
         ClientPacketRegistry.register(SpectatorInspectPackets.S2CWatchedPlayerInspectPacket.class, SpectatorClientPacketHandlers::handleWatchedPlayerInspect);

@@ -72,6 +72,10 @@ public interface IGunProvider {
     /** 通过 gunId 获取枪械数据 */
     Optional<GunDataDTO> getGunData(ResourceLocation gunId);
 
+    /** Ensures the item's fire mode is valid; no-op by default, overridden by gun mod providers. */
+    default void ensureValidFireMode(ItemStack stack) {
+    }
+
     // ========== 渲染（客户端） ==========
 
     /** 获取枪械 HUD 纹理（客户端专用） */

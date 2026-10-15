@@ -7,7 +7,6 @@ import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.TextField;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.VirtualScrollerView;
-import com.lowdragmc.lowdraglib2.math.Size;
 import com.phasetranscrystal.fpsmatch.FPSMatch;
 import com.phasetranscrystal.fpsmatch.common.client.screen.ldlib2.FPSMLdlib2Theme;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomDetail;
@@ -18,7 +17,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.appliedenergistics.yoga.YogaPositionType;
 
-/** Editable map-room settings list. */
+/** Editable map-room settings list, drawn as a compact floating window. */
 public final class Ldlib2MapSettingsScreen extends Ldlib2MapChildScreen {
     private final Label subtitleLabel;
     private final VirtualScrollerView<MapRoomSettingInfo> list;
@@ -34,6 +33,7 @@ public final class Ldlib2MapSettingsScreen extends Ldlib2MapChildScreen {
         this.list = parts.list();
         this.emptyLabel = parts.empty();
         parts.back().setOnClick(e -> onClose());
+        parts.close().setOnClick(e -> onClose());
         refreshContent();
     }
 
@@ -55,30 +55,25 @@ public final class Ldlib2MapSettingsScreen extends Ldlib2MapChildScreen {
     }
 
     private static Parts build() {
-        UIElement root = new UIElement().setId("fpsmatch.map_settings.root");
-        root.layout(layout -> layout.widthPercent(100).heightPercent(100));
-        FPSMLdlib2Theme.root(root);
-
-        Label header = label("fpsmatch.map_settings.header", Component.translatable("gui.fpsm.map_select.settings.title"));
-        header.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(18).right(18).top(12).height(20));
-        FPSMLdlib2Theme.title(header);
+        Chrome chrome = chrome("fpsmatch.map_settings.root", Component.translatable("gui.fpsm.map_select.settings.title"));
 
         Label subtitle = label("fpsmatch.map_settings.subtitle", Component.empty());
-        subtitle.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(18).right(18).top(34).height(16));
+        subtitle.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(12).right(12).top(32).height(14));
         FPSMLdlib2Theme.muted(subtitle);
 
         UIElement panel = new UIElement().setId("fpsmatch.map_settings.panel");
-        panel.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(16).right(16).top(56).bottom(56));
-        FPSMLdlib2Theme.panel(panel);
+        panel.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(10).right(10).top(50).bottom(50));
+        panel.style(s -> s.background(FPSMLdlib2Theme.roundedTexture(
+                FPSMLdlib2Theme.CARD_BG, FPSMLdlib2Theme.BORDER, FPSMLdlib2Theme.CARD_RADIUS)));
 
         Label empty = label("fpsmatch.map_settings.empty", Component.translatable("gui.fpsm.map_select.settings.empty"));
-        empty.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(14).right(14).top(20).height(18));
+        empty.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(14).right(14).top(16).height(18));
         FPSMLdlib2Theme.muted(empty);
         empty.setVisible(false);
 
         VirtualScrollerView<MapRoomSettingInfo> list = new VirtualScrollerView<>();
         list.setId("fpsmatch.map_settings.list");
-        list.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(8).right(8).top(8).bottom(8));
+        list.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(8).right(8).top(8).bottom(8));
         list.virtualScrollerViewStyle(style -> style.estimatedItemHeight(30f));
         list.setItemUIProvider(Ldlib2MapSettingsScreen::settingRow);
 
@@ -87,11 +82,13 @@ public final class Ldlib2MapSettingsScreen extends Ldlib2MapChildScreen {
         Button back = new Button();
         back.setId("fpsmatch.map_settings.back");
         back.setText(Component.translatable("gui.back"));
-        back.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(18).bottom(16).width(96).height(24));
+        back.layout(l -> l.positionType(YogaPositionType.ABSOLUTE).left(10).bottom(14).width(96).height(24));
         FPSMLdlib2Theme.button(back, FPSMLdlib2Theme.ButtonKind.QUIET);
 
-        root.addChildren(header, subtitle, panel, back);
-        return new Parts(ModularUI.of(UI.of(root, size -> Size.of(size.getWidth(), size.getHeight()))), subtitle, list, empty, back);
+        chrome.root().addChildren(subtitle, panel, back);
+        return new Parts(ModularUI.of(UI.of(chrome.root(),
+                        screenSize -> MapSelectionLayoutModel.windowSize(screenSize.getWidth(), screenSize.getHeight()))),
+                subtitle, list, empty, back, chrome.close());
     }
 
     private static UIElement settingRow(MapRoomSettingInfo setting) {
@@ -154,5 +151,6 @@ public final class Ldlib2MapSettingsScreen extends Ldlib2MapChildScreen {
         return label;
     }
 
-    private record Parts(ModularUI ui, Label subtitle, VirtualScrollerView<MapRoomSettingInfo> list, Label empty, Button back) {}
+    private record Parts(ModularUI ui, Label subtitle, VirtualScrollerView<MapRoomSettingInfo> list, Label empty,
+                         Button back, Button close) {}
 }

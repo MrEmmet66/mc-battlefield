@@ -25,16 +25,19 @@ class Ldlib2ScreenContractTest {
     }
 
     @Test
-    void mapSelectionFitsBothDesktopAndCompactLayouts() {
-        MapSelectionLayoutModel desktop = MapSelectionLayoutModel.responsive(960, 540);
-        MapSelectionLayoutModel compact = MapSelectionLayoutModel.responsive(480, 360);
-        assertFalse(desktop.compact());
-        assertTrue(compact.compact());
-        assertFalse(desktop.filters().intersects(desktop.roomList()));
-        assertFalse(desktop.roomList().intersects(desktop.detail()));
-        assertEquals(960, desktop.actions().width());
-        assertEquals(480, compact.actions().width());
+    void mapSelectionFitsBothWideAndNarrowWindows() {
+        MapSelectionLayoutModel wide = MapSelectionLayoutModel.responsive(860, 520);
+        MapSelectionLayoutModel narrow = MapSelectionLayoutModel.responsive(520, 300);
+        assertFalse(wide.compact());
+        assertTrue(narrow.compact());
+        assertFalse(wide.filters().intersects(wide.roomList()));
+        assertFalse(wide.roomList().intersects(wide.detail()));
+        assertFalse(narrow.filters().intersects(narrow.roomList()));
+        assertFalse(narrow.roomList().intersects(narrow.detail()));
+        assertEquals(860 - MapSelectionLayoutModel.PADDING * 2, wide.actions().width());
+        assertEquals(520 - MapSelectionLayoutModel.PADDING * 2, narrow.actions().width());
     }
+
 
     @Test
     void shopEditorFitsBothDesktopAndCompactLayouts() {

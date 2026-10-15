@@ -72,7 +72,7 @@ class TeamInteractionModelTest {
     private static MapRoomDetail detail(boolean started, boolean operator) {
         MapRoomSummary summary = new MapRoomSummary(
                 "cs", "de_test", "Test", "", "0-0", started, false,
-                !started, 1, 2, true, false, operator, 0);
+                !started, 1, 2, true, false, operator, 0, "");
         MapRoomPlayerInfo player = new MapRoomPlayerInfo(PLAYER, "Player", "red", false, true, false);
         return new MapRoomDetail(
                 summary,

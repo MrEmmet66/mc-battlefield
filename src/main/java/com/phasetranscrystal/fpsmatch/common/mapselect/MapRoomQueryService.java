@@ -108,7 +108,8 @@ public final class MapRoomQueryService {
                 joinedMap,
                 spectating,
                 viewer.hasPermissions(2),
-                map.getReadyCountdownSeconds()
+                map.getReadyCountdownSeconds(),
+                map.getIconTexture()
         );
     }
 

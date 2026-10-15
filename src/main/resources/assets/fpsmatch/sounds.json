@@ -26,7 +26,7 @@
   "boom": {
     "subtitle": "sounds.fpsmatch.throwable.boom",
     "sounds": [
-      "fpsmatch:boom"
+      "minecraft:random/explode1"
     ]
   },
   "mvp.default": {

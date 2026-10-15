@@ -126,7 +126,7 @@ public final class Ldlib2ShopEditorUi {
             price.setId(ShopEditorWidgetCatalog.PRICE + "." + type + "." + i);
             price.setValue(Component.literal("$" + cost));
             price.layout(layout -> layout.positionType(YogaPositionType.ABSOLUTE).left(4).right(4).bottom(4).height(14));
-            FPSMLdlib2Theme.status(price, FPSMLdlib2Theme.WARNING);
+            FPSMLdlib2Theme.status(price, FPSMLdlib2Theme.ACCENT);
 
             card.addChildren(name, item, price);
             slots.addChild(card);

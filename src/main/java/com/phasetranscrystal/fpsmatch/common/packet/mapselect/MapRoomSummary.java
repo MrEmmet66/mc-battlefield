@@ -16,7 +16,8 @@ public record MapRoomSummary(
         boolean currentPlayerJoined,
         boolean currentPlayerSpectating,
         boolean currentPlayerOp,
-        int readyCountdownSeconds
+        int readyCountdownSeconds,
+        String iconTexture
 ) {
     private static final int ID_MAX_LENGTH = 128;
     private static final int TEXT_MAX_LENGTH = 512;
@@ -36,6 +37,7 @@ public record MapRoomSummary(
         buf.writeBoolean(summary.currentPlayerSpectating());
         buf.writeBoolean(summary.currentPlayerOp());
         buf.writeInt(summary.readyCountdownSeconds());
+        buf.writeUtf(summary.iconTexture(), ID_MAX_LENGTH);
     }
 
     public static MapRoomSummary decode(FriendlyByteBuf buf) {
@@ -53,7 +55,8 @@ public record MapRoomSummary(
                 buf.readBoolean(),
                 buf.readBoolean(),
                 buf.readBoolean(),
-                buf.readInt()
+                buf.readInt(),
+                buf.readUtf(ID_MAX_LENGTH)
         );
     }
 

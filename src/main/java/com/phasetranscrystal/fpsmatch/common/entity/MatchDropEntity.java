@@ -248,6 +248,7 @@ public class MatchDropEntity extends Entity {
             ItemStack replace = this.getItem().copy();
             IGunProvider provider = GunCompatManager.findProvider(replace);
             if(provider.isGun(replace)){
+                provider.ensureValidFireMode(replace);
                 Optional<GunTabTypeEnum> type = provider.getGunData(replace).map(GunDataDTO::getGunTabType);
                 type.ifPresent(t->{
                     this.playSound(FPSMSoundRegister.getGunPickupSound(t));
@@ -306,6 +307,7 @@ public class MatchDropEntity extends Entity {
 
                     IGunProvider provider = GunCompatManager.findProvider(copy);
                     if(provider.isGun(copy)){
+                        provider.ensureValidFireMode(copy);
                         Optional<GunTabTypeEnum> opt = provider.getGunData(copy).map(GunDataDTO::getGunTabType);
                         opt.ifPresent(t->{
                             this.playSound(FPSMSoundRegister.getGunPickupSound(t));

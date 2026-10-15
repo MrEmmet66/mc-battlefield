@@ -224,6 +224,8 @@ public class FPSMatch {
         PACKET_REGISTER.registerPacket(MapRoomSettingsC2SPacket.class);
         PACKET_REGISTER.registerPacket(MapRoomToastS2CPacket.class);
         PACKET_REGISTER.registerPacket(MapRoomInvitationS2CPacket.class);
+        PACKET_REGISTER.registerPacket(MapThumbnailRequestC2SPacket.class);
+        PACKET_REGISTER.registerPacket(MapThumbnailS2CPacket.class);
         PACKET_REGISTER.registerPacket(TeamManageActionC2SPacket.class);
         PACKET_REGISTER.registerPacket(TeamManageResultS2CPacket.class);
         MinimapPacketRegistration.register(PACKET_REGISTER);

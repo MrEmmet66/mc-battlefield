@@ -1,15 +1,18 @@
 package com.phasetranscrystal.fpsmatch.compat.tacz;
 
+import com.phasetranscrystal.fpsmatch.FPSMatch;
 import com.phasetranscrystal.fpsmatch.compat.gun.*;
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.GunTabType;
 import com.tacz.guns.api.item.IGun;
+import com.tacz.guns.api.item.gun.FireMode;
 import com.tacz.guns.resource.index.CommonGunIndex;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -111,6 +114,31 @@ public class TACZGunProvider implements IGunProvider {
         IGun iGun = IGun.getIGunOrNull(stack);
         if (iGun != null) {
             iGun.useDummyAmmo(stack);
+        }
+    }
+
+    @Override
+    public void ensureValidFireMode(ItemStack stack) {
+        try {
+            IGun iGun = IGun.getIGunOrNull(stack);
+            if (iGun == null) {
+                return;
+            }
+            FireMode current = iGun.getFireMode(stack);
+            List<FireMode> supportedModes = TimelessAPI.getCommonGunIndex(iGun.getGunId(stack))
+                    .map(index -> index.getGunData().getFireModeSet())
+                    .orElse(null);
+            if (supportedModes == null || supportedModes.isEmpty()) {
+                if (current == null || current == FireMode.UNKNOWN) {
+                    iGun.setFireMode(stack, FireMode.SEMI);
+                }
+                return;
+            }
+            if (current == null || current == FireMode.UNKNOWN || !supportedModes.contains(current)) {
+                iGun.setFireMode(stack, supportedModes.get(0));
+            }
+        } catch (Throwable t) {
+            FPSMatch.debug("[FPSMatch] ensureValidFireMode failed for {}: {}", stack, t);
         }
     }
 
