@@ -5,6 +5,8 @@ import com.ptcrys.blockoffensive.BlockOffensive;
 import com.ptcrys.blockoffensive.data.persistence.CSGameMapFixer;
 import com.ptcrys.blockoffensive.data.persistence.CSShopArmorFixer;
 import com.ptcrys.blockoffensive.data.persistence.CSShopDefaultsFixer;
+import com.ptcrys.blockoffensive.data.persistence.CSShopContentV6Fixer;
+import com.ptcrys.blockoffensive.data.persistence.CSShopContentV7Fixer;
 import com.ptcrys.blockoffensive.data.persistence.CSShopSuperbWarfareFixer;
 import com.ptcrys.blockoffensive.data.persistence.CSShopWeaponFireModeFixer;
 import com.ptcrys.blockoffensive.map.shop.ItemType;
@@ -40,10 +42,14 @@ public class MapRegister {
         DataFixer.getInstance().registerJsonFixer(CSDeathMatchMap.class,3, new CSShopArmorFixer());
         DataFixer.getInstance().registerJsonFixer(CSGameMap.class,4, new CSShopWeaponFireModeFixer());
         DataFixer.getInstance().registerJsonFixer(CSDeathMatchMap.class,4, new CSShopWeaponFireModeFixer());
+        DataFixer.getInstance().registerJsonFixer(CSGameMap.class,5, new CSShopContentV6Fixer());
+        DataFixer.getInstance().registerJsonFixer(CSDeathMatchMap.class,5, new CSShopContentV6Fixer());
+        DataFixer.getInstance().registerJsonFixer(CSGameMap.class,6, new CSShopContentV7Fixer());
+        DataFixer.getInstance().registerJsonFixer(CSDeathMatchMap.class,6, new CSShopContentV7Fixer());
 
         event.registerData(CSGameMap.class,"CSGameMaps",
                 new SaveHolder.Builder<>(CSGameMap.CODEC)
-                        .withVersion(5)
+                        .withVersion(7)
                         .withLoadHandler(CSGameMap::load)
                         .withSaveHandler(CSGameMap::save)
                         .build()
@@ -51,7 +57,7 @@ public class MapRegister {
 
         event.registerData(CSDeathMatchMap.class,"CSDeathMatchMaps",
                 new SaveHolder.Builder<>(CSDeathMatchMap.CODEC)
-                        .withVersion(5)
+                        .withVersion(7)
                         .withLoadHandler(CSDeathMatchMap::load)
                         .withSaveHandler(CSDeathMatchMap::save)
                         .build()

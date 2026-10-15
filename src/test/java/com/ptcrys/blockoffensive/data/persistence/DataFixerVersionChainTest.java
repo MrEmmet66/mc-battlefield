@@ -11,8 +11,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Covers the DataFixer engine that drives the CS shop save migration chain
- * 0 -> 1 -> 2 -> 3 -> 4 -> 5. The BlockOffensive fixer content itself
- * (CSShopDefaultsFixer / CSShopSuperbWarfareFixer / CSShopArmorFixer / CSShopWeaponFireModeFixer) needs a live Minecraft
+ * 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7. The BlockOffensive fixer content itself
+ * (CSShopDefaultsFixer / CSShopSuperbWarfareFixer / CSShopArmorFixer / CSShopWeaponFireModeFixer / CSShopContentV6Fixer / CSShopContentV7Fixer) needs a live Minecraft
  * bootstrap (registries, ModList, TACZ/SuperbWarfare item builders) and is
  * reasoned about in the QA audit rather than unit-tested here.
  *
@@ -25,6 +25,8 @@ class DataFixerVersionChainTest {
     private static final class ChainB {}
     private static final class ChainMissing {}
     private static final class ChainC {}
+    private static final class ChainD {}
+    private static final class ChainE {}
 
     @Test
     void appliesFixersInAscendingVersionOrder() {
@@ -56,6 +58,34 @@ class DataFixerVersionChainTest {
 
         assertTrue(result.has("3to4"), "version 3 -> 4 fixer must run");
         assertTrue(result.has("4to5"), "version 4 -> 5 fixer must run");
+    }
+
+    @Test
+    void appliesVersionFiveToSixFixer() {
+        DataFixer fixer = DataFixer.getInstance();
+        JsonObject root = new JsonObject();
+
+        fixer.registerJsonFixer(ChainD.class, 4, json -> { json.getAsJsonObject().addProperty("4to5", true); return json; });
+        fixer.registerJsonFixer(ChainD.class, 5, json -> { json.getAsJsonObject().addProperty("5to6", true); return json; });
+
+        JsonObject result = fixer.fixJson(ChainD.class, root, 4, 6).getAsJsonObject();
+
+        assertTrue(result.has("4to5"), "version 4 -> 5 fixer must run");
+        assertTrue(result.has("5to6"), "version 5 -> 6 fixer must run");
+    }
+
+    @Test
+    void appliesVersionSixToSevenFixer() {
+        DataFixer fixer = DataFixer.getInstance();
+        JsonObject root = new JsonObject();
+
+        fixer.registerJsonFixer(ChainE.class, 5, json -> { json.getAsJsonObject().addProperty("5to6", true); return json; });
+        fixer.registerJsonFixer(ChainE.class, 6, json -> { json.getAsJsonObject().addProperty("6to7", true); return json; });
+
+        JsonObject result = fixer.fixJson(ChainE.class, root, 5, 7).getAsJsonObject();
+
+        assertTrue(result.has("5to6"), "version 5 -> 6 fixer must run");
+        assertTrue(result.has("6to7"), "version 6 -> 7 fixer must run");
     }
 
     @Test

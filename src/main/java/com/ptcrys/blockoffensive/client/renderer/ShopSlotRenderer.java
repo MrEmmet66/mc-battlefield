@@ -11,9 +11,11 @@ import com.phasetranscrystal.fpsmatch.compat.gun.GunTabTypeEnum;
 import com.phasetranscrystal.fpsmatch.util.FPSMUtil;
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.client.resource.GunDisplayInstance;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.client.ItemDecoratorHandler;
 import net.minecraftforge.fml.ModList;
 import org.slf4j.Logger;
 
@@ -107,6 +109,7 @@ public final class ShopSlotRenderer {
             gr.pose().translate(ix, iy, 0);
             gr.pose().scale(s, s, s);
             gr.renderItem(itemStack, 0, 0);
+            ItemDecoratorHandler.of(itemStack).render(gr, Minecraft.getInstance().font, itemStack, 0, 0);
         } finally {
             gr.pose().popPose();
         }

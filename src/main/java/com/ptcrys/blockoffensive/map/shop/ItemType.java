@@ -12,6 +12,7 @@ import com.tacz.guns.api.item.builder.AttachmentItemBuilder;
 import com.tacz.guns.api.item.builder.GunItemBuilder;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraftforge.fml.ModList;
@@ -30,6 +31,17 @@ public enum ItemType implements INamedType {
         @Override
         public ArrayList<ShopSlot> defaultSlots() {
             return copySlots(getWeaponTemplates());
+        }
+    },
+    MELEE(8) {
+        @Override
+        public int slotCount() {
+            return getMeleeTemplates().size();
+        }
+
+        @Override
+        public ArrayList<ShopSlot> defaultSlots() {
+            return copySlots(getMeleeTemplates());
         }
     },
     AMMO(1) {
@@ -115,6 +127,7 @@ public enum ItemType implements INamedType {
 
     private static List<ShopSlot> weaponTemplates;
     private static List<ShopSlot> ammoTemplates;
+    private static List<ShopSlot> meleeTemplates;
     private static List<ShopSlot> armorTemplates;
     private static List<ShopSlot> vehicleTemplates;
     private static List<ShopSlot> attachmentTemplates;
@@ -148,6 +161,10 @@ public enum ItemType implements INamedType {
 
     private static boolean swLoaded() {
         return ModList.get().isLoaded("superbwarfare");
+    }
+
+    private static boolean lrtLoaded() {
+        return ModList.get().isLoaded("lrtactical");
     }
 
     private static synchronized List<ShopSlot> getWeaponTemplates() {
@@ -258,6 +275,11 @@ public enum ItemType implements INamedType {
                 addC4Item(explosivesTemplates, true, 1100);
                 addSWItem(explosivesTemplates, "detonator", 1, 150);
                 addNonSWGrenades(explosivesTemplates);
+                addSWItem(explosivesTemplates, "rpg", 1, 3000);
+                addSWItem(explosivesTemplates, "rpg_rocket_standard", 1, 400);
+                addSWItem(explosivesTemplates, "rpg_rocket_tbg", 1, 550);
+                addSWItem(explosivesTemplates, "tm_62", 1, 700);
+                addSWItem(explosivesTemplates, "ptkm_1r", 1, 1200);
             } else if (ModList.get().isLoaded("csgrenades")) {
                 addItem(explosivesTemplates, "csgrenades", "hegrenade", 300);
                 addItem(explosivesTemplates, "csgrenades", "flashbang", 200);
@@ -289,8 +311,28 @@ public enum ItemType implements INamedType {
                 addSWItem(supportTemplates, "artillery_indicator", 1, 600);
                 addSWItem(supportTemplates, "firing_parameters", 1, 200);
             }
+            if (lrtLoaded()) {
+                addLRConsumable(supportTemplates, "ibuprofen", 200);
+                addLRConsumable(supportTemplates, "blood_pack", 350);
+                addLRConsumable(supportTemplates, "cms", 450);
+                addLRConsumable(supportTemplates, "ai2", 600);
+                addLRConsumable(supportTemplates, "surv12", 650);
+                addLRConsumable(supportTemplates, "carfak", 800);
+            }
         }
         return supportTemplates;
+    }
+
+    private static synchronized List<ShopSlot> getMeleeTemplates() {
+        if (meleeTemplates == null) {
+            meleeTemplates = new ArrayList<>();
+            if (lrtLoaded()) {
+                addLRMelee(meleeTemplates, "dagger", 200);
+                addLRMelee(meleeTemplates, "karambit", 350);
+                addLRMelee(meleeTemplates, "baseball_bat", 500);
+            }
+        }
+        return meleeTemplates;
     }
 
     private static synchronized List<ShopSlot> getVehicleTemplates() {
@@ -325,6 +367,7 @@ public enum ItemType implements INamedType {
                 addSWItem(vehicleAmmoTemplates, "large_shell_gs", 6, 350);
                 addSWItem(vehicleAmmoTemplates, "large_shell_he", 6, 500);
                 addSWItem(vehicleAmmoTemplates, "large_shell_ap", 6, 600);
+                addSWItem(vehicleAmmoTemplates, "medium_anti_ground_missile", 1, 1500);
             }
         }
         return vehicleAmmoTemplates;
@@ -461,6 +504,51 @@ public enum ItemType implements INamedType {
         }
     }
 
+    private static void addLRConsumable(List<ShopSlot> list, String consumableId, int cost) {
+        addLRIndexedItem(list, "consumable", "ConsumableId", consumableId, cost);
+    }
+
+    private static void addLRMelee(List<ShopSlot> list, String meleeId, int cost) {
+        addLRIndexedItem(list, "melee", "MeleeWeaponId", meleeId, cost);
+    }
+
+    private static void addLRIndexedItem(List<ShopSlot> list, String baseItemId, String nbtKey, String variantId, int cost) {
+        try {
+            net.minecraft.world.item.Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation("lrtactical", baseItemId));
+            if (item == null || item == Items.AIR) {
+                FPSMatch.LOGGER.warn("Missing LR Tactical shop item lrtactical:{}, skipping from template", baseItemId);
+                return;
+            }
+            ItemStack stack = new ItemStack(item);
+            stack.getOrCreateTag().putString(nbtKey, "lrtactical:" + variantId);
+            list.add(new ShopSlot(stack, cost));
+        } catch (Throwable t) {
+            FPSMatch.LOGGER.warn("Failed to create LR Tactical shop item lrtactical:{} ({}={}): {}", baseItemId, nbtKey, variantId, t.toString());
+            list.add(new ShopSlot(ItemStack.EMPTY, cost));
+        }
+    }
+
+    private static ItemStack createVehicleStack(net.minecraft.world.item.Item container, String entityId) {
+        try {
+            EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation("superbwarfare", entityId));
+            if (type != null) {
+                Class<?> itemClass = Class.forName("com.atsuishio.superbwarfare.item.container.ContainerBlockItem");
+                java.lang.reflect.Method factory = itemClass.getMethod("createInstance", EntityType.class);
+                Object result = factory.invoke(null, type);
+                if (result instanceof ItemStack itemStack) {
+                    return itemStack;
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+        ItemStack stack = new ItemStack(container);
+        CompoundTag tag = new CompoundTag();
+        tag.putString("EntityType", "superbwarfare:" + entityId);
+        tag.putString("id", "superbwarfare:container");
+        stack.getOrCreateTag().put("BlockEntityTag", tag);
+        return stack;
+    }
+
     private static void addC4Item(List<ShopSlot> list, boolean remote, int cost) {
         if (!swLoaded()) {
             list.add(new ShopSlot(ItemStack.EMPTY, cost));
@@ -509,10 +597,7 @@ public enum ItemType implements INamedType {
             if (container == null || container == Items.AIR) {
                 throw new IllegalStateException("missing item superbwarfare:container");
             }
-            ItemStack stack = new ItemStack(container);
-            CompoundTag tag = new CompoundTag();
-            tag.putString("EntityType", "superbwarfare:" + entityId);
-            stack.getOrCreateTag().put("BlockEntityTag", tag);
+            ItemStack stack = createVehicleStack(container, entityId);
             list.add(new ShopSlot(stack, cost));
         } catch (Throwable t) {
             com.phasetranscrystal.fpsmatch.FPSMatch.LOGGER.warn("Failed to create vehicle shop item {}: {}", entityId, t.toString());

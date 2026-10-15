@@ -6,6 +6,7 @@ import com.ptcrys.blockoffensive.client.renderer.ShopSlotRenderer;
 import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.ptcrys.blockoffensive.map.shop.ItemType;
 import com.ptcrys.blockoffensive.util.OverlaySnapshotKey;
+import com.ptcrys.blockoffensive.util.ShopOverlayLayout;
 import com.phasetranscrystal.fpsmatch.common.client.FPSMClient;
 import com.phasetranscrystal.fpsmatch.common.client.music.FPSClientMusicManager;
 import com.phasetranscrystal.fpsmatch.common.client.shop.ClientShopSlot;
@@ -63,22 +64,13 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
     public static final Map<ItemType, List<GunButtonLayout>> shopButtons = new HashMap<>();
     public static final String BACKGROUND = "ui/cs/background.png";
     public static final int DISABLE_TEXT_COLOR = BOTheme.mui(BOTheme.TEXT_SECONDARY_RGB);
-    private static final String[] TOP_NAME_KEYS = new String[]{
-            "blockoffensive.shop.title.weapon",
-            "blockoffensive.shop.title.ammo",
-            "blockoffensive.shop.title.attachment",
-            "blockoffensive.shop.title.armor",
-            "blockoffensive.shop.title.explosives",
-            "blockoffensive.shop.title.support",
-            "blockoffensive.shop.title.vehicle",
-            "blockoffensive.shop.title.vehicle_ammo"
-    };
     public static volatile boolean refreshFlag = false;
     private static final Logger LOGGER = LogUtils.getLogger();
+    private static final boolean SHOP_DEBUG = Boolean.getBoolean("bo.shopdebug");
     private static volatile long lastOverlayErrorLogTime = 0L;
+    private static volatile long lastSnapshotDebugLogTime = 0L;
     private final Map<Long, PendingShopAction> pendingActions = new HashMap<>();
     private static int selectedCategory = 0;
-    private static volatile GunButtonLayout hoveredButton = null;
     private static volatile OverlaySnapshot activeOverlay = null;
     private WindowLayout window;
 
@@ -96,7 +88,21 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
     public static String getCategoryTitle(int index) {
         ItemType[] values = ItemType.values();
         if (index < 0 || index >= values.length) index = 0;
-        return I18n.get(TOP_NAME_KEYS[index]);
+        ItemType type = values[index];
+        String key = "blockoffensive.shop.title." + type.name().toLowerCase(Locale.ROOT);
+        return I18n.exists(key) ? I18n.get(key) : prettifyEnumName(type.name());
+    }
+
+    private static String prettifyEnumName(String name) {
+        String[] parts = name.toLowerCase(Locale.ROOT).split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(Character.toUpperCase(part.charAt(0)));
+            if (part.length() > 1) sb.append(part.substring(1));
+        }
+        return sb.toString();
     }
 
     private static List<Integer> getVisibleOrdinals() {
@@ -135,19 +141,31 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
 
     public static ItemStack getHoveredItemStack() {
         OverlaySnapshot snap = activeOverlay;
-        if (snap != null) {
-            ItemStack stack = snap.hoveredStack;
-            if (stack != null && !stack.isEmpty()) {
-                return stack;
-            }
+        if (snap == null || snap.cards == null) {
+            return ItemStack.EMPTY;
         }
-        return ItemStack.EMPTY;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.mouseHandler == null) {
+            return ItemStack.EMPTY;
+        }
+        int idx = ShopOverlayLayout.findHovered(snap.cards, mc.mouseHandler.xpos(), mc.mouseHandler.ypos());
+        if (idx < 0) {
+            return ItemStack.EMPTY;
+        }
+        ShopOverlayLayout.CardDesc card = snap.cards.get(idx);
+        if (card.typeOrdinal < 0 || card.typeOrdinal >= ItemType.values().length) {
+            return ItemStack.EMPTY;
+        }
+        ClientShopSlot slot = FPSMClient.getGlobalData().getSlotData(ItemType.values()[card.typeOrdinal].name(), card.index);
+        if (slot == null || slot.itemStack().isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        return slot.itemStack();
     }
 
     @Override
     public void onDestroyView() {
         window = null;
-        hoveredButton = null;
         pendingActions.clear();
         activeOverlay = null;
         super.onDestroyView();
@@ -255,14 +273,16 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         public final float y;
         public final float w;
         public final float h;
+        public final float fullH;
 
-        SlotIcon(ItemType type, int index, float x, float y, float w, float h) {
+        SlotIcon(ItemType type, int index, float x, float y, float w, float h, float fullH) {
             this.type = type;
             this.index = index;
             this.x = x;
             this.y = y;
             this.w = w;
             this.h = h;
+            this.fullH = fullH;
         }
     }
 
@@ -273,17 +293,17 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         final int viewportWidth;
         final int viewportHeight;
         final SlotIcon detailsIcon;
-        final ItemStack hoveredStack;
+        final List<ShopOverlayLayout.CardDesc> cards;
 
         OverlaySnapshot(SlotIcon[] gridIcons, int viewportX, int viewportY, int viewportWidth, int viewportHeight,
-                        SlotIcon detailsIcon, ItemStack hoveredStack) {
+                        SlotIcon detailsIcon, List<ShopOverlayLayout.CardDesc> cards) {
             this.gridIcons = gridIcons;
             this.viewportX = viewportX;
             this.viewportY = viewportY;
             this.viewportWidth = viewportWidth;
             this.viewportHeight = viewportHeight;
             this.detailsIcon = detailsIcon;
-            this.hoveredStack = hoveredStack;
+            this.cards = cards;
         }
     }
 
@@ -354,7 +374,14 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         private List<GunButtonLayout> currentButtons = new ArrayList<>();
         private ItemType selectedType = null;
         private int selectedIndex = -1;
-        private final Map<ItemType, Integer> selectedByCategory = new HashMap<>();
+        private final int[] selectedByOrdinal = new int[ItemType.values().length];
+        private int cardH = CARD_HEIGHT;
+        private int cardGap = CARD_GAP;
+        private int cardIconH = (int) GunButtonLayout.ICON_AREA_HEIGHT;
+        private int gridPadLeft;
+        private int gridPadRight;
+        private int gridPadTop;
+        private int gridPadBottom;
         private ItemType renderedType = null;
         private int renderedIndex = -1;
 
@@ -371,7 +398,6 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         private boolean cachedDetailsEmpty = false;
         private final int[] tmpLocation = new int[2];
 
-        private int[] snapKeyBuf = new int[64];
         private int[] lastSnapKey = null;
 
         public final List<CategoryButton> categoryButtons = new ArrayList<>();
@@ -415,8 +441,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             refreshSidebarSelection();
             rebuildItems();
             ItemType type = ItemType.values()[selectedCategory];
-            int sel = selectedByCategory.getOrDefault(type, 0);
-            if (sel < 0 || sel >= type.slotCount()) sel = 0;
+            int sel = ShopOverlayLayout.resolveSelectionIndex(selectedByOrdinal, selectedCategory, type.slotCount());
             selectedType = type;
             selectedIndex = sel;
             applySelectionToCards();
@@ -574,7 +599,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             ShapeDrawable thumb = shape(BOTheme.muiA(0x99, BOTheme.ACCENT_RGB), BOTheme.RADIUS_SMALL);
             gridScroll.setVerticalScrollbarThumbDrawable(thumb);
             gridScroll.setScrollBarSize(5);
-            gridScroll.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> publishOverlaySnapshot());
+            gridScroll.setOnScrollChangeListener((v, scrollX, scrollY, oldScrollX, oldScrollY) -> publishOverlaySnapshot("scroll"));
 
             itemsContainer = new LinearLayout(getContext());
             itemsContainer.setOrientation(LinearLayout.VERTICAL);
@@ -648,6 +673,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         @Override
         protected void onAttachedToWindow() {
             super.onAttachedToWindow();
+            addOnLayoutChangeListener(this::onWindowLayoutChange);
             if (!frameLoopRunning) {
                 frameLoopRunning = true;
                 postOnAnimation(mFrameLoop);
@@ -665,6 +691,8 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             public void run() {
                 if (!frameLoopRunning) return;
                 invalidate();
+                updateText();
+                refreshDetails();
                 postOnAnimation(this);
             }
         };
@@ -672,19 +700,18 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         public void selectCategory(int index) {
             if (index < 0 || index >= ItemType.values().length) return;
             selectedCategory = index;
-            hoveredButton = null;
             refreshSidebarSelection();
             rebuildItems();
             if (gridScroll != null) {
                 gridScroll.scrollTo(0, 0);
             }
             ItemType type = ItemType.values()[selectedCategory];
-            int sel = selectedByCategory.getOrDefault(type, 0);
-            if (sel < 0 || sel >= type.slotCount()) sel = 0;
+            int sel = ShopOverlayLayout.resolveSelectionIndex(selectedByOrdinal, selectedCategory, type.slotCount());
             selectedType = type;
             selectedIndex = sel;
             applySelectionToCards();
             refreshDetails();
+            publishOverlaySnapshot("category");
         }
 
         private void refreshSidebarSelection() {
@@ -713,8 +740,9 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             List<GunButtonLayout> buttons = new ArrayList<>();
             final int gap = (int) (CARD_GAP * scale);
             final int rowHeight = (int) (CARD_HEIGHT * scale);
+            int paddedCount = ((count + cardColumns - 1) / cardColumns) * cardColumns;
             LinearLayout row = null;
-            for (int j = 0; j < count; j++) {
+            for (int j = 0; j < paddedCount; j++) {
                 if (j % cardColumns == 0) {
                     row = new LinearLayout(getContext());
                     row.setOrientation(LinearLayout.HORIZONTAL);
@@ -722,19 +750,26 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
                     rp.bottomMargin = gap;
                     itemsContainer.addView(row, rp);
                 }
-                GunButtonLayout button = new GunButtonLayout(getContext(), type, j, host);
-                buttons.add(button);
-                button.setScale(scale);
                 LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(0, MATCH_PARENT, 1.0f);
                 if (j % cardColumns == 0) {
                     cp.rightMargin = gap / 2;
                 } else {
                     cp.leftMargin = gap / 2;
                 }
-                row.addView(button, cp);
+                if (j < count) {
+                    GunButtonLayout button = new GunButtonLayout(getContext(), type, j, host);
+                    buttons.add(button);
+                    button.setScale(scale);
+                    row.addView(button, cp);
+                } else {
+                    View spacer = new View(getContext());
+                    spacer.setVisibility(View.INVISIBLE);
+                    row.addView(spacer, cp);
+                }
             }
             shopButtons.put(type, buttons);
             currentButtons = buttons;
+            post(() -> publishOverlaySnapshot("rebuild"));
         }
 
         public void selectItem(ItemType type, int index) {
@@ -742,10 +777,11 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             selectedType = type;
             selectedIndex = index;
             if (ItemType.values()[selectedCategory] == type) {
-                selectedByCategory.put(type, index);
+                selectedByOrdinal[type.ordinal()] = index;
             }
             applySelectionToCards();
             refreshDetails();
+            publishOverlaySnapshot("item");
         }
 
         private void applySelectionToCards() {
@@ -756,10 +792,13 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             }
         }
 
-        private void publishOverlaySnapshot() {
-            if (gridScroll == null || currentButtons == null || currentButtons.isEmpty()) {
-                activeOverlay = null;
-                lastSnapKey = null;
+        private void publishOverlaySnapshot(String trigger) {
+            if (gridScroll == null || currentButtons == null || currentButtons.isEmpty()
+                    || gridScroll.getWidth() <= 0 || gridScroll.getHeight() <= 0) {
+                if (activeOverlay != null) {
+                    activeOverlay = null;
+                    lastSnapKey = null;
+                }
                 return;
             }
             int scrollY = gridScroll.getScrollY();
@@ -772,114 +811,79 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
 
             List<GunButtonLayout> buttons = currentButtons;
             int count = buttons.size();
+            int typeOrdinal = buttons.get(0).type.ordinal();
 
-            int selOrd = selectedType != null ? selectedType.ordinal() : -1;
-
-            boolean detailsVisible = selectedType != null && selectedIndex >= 0
-                    && detailsIconView != null
-                    && detailsIconView.getVisibility() == View.VISIBLE
-                    && isDetailsIconInsideWindow();
-
-            ItemStack hoveredStack = ItemStack.EMPTY;
-            if (hoveredButton != null && hoveredButton.isShown()) {
-                ClientShopSlot slot = hoveredButton.getSlot();
-                if (slot != null && slot.itemStack() != null && !slot.itemStack().isEmpty()) {
-                    hoveredStack = slot.itemStack();
-                }
-            }
-            int hoverIdent = hoveredStack.isEmpty() ? -1 : System.identityHashCode(hoveredStack);
-
-            int len = buildSnapshotKey(buttons, count, selOrd, selectedIndex, scrollY, gridX0, gridY0,
-                    viewportW, viewportH, detailsVisible, hoverIdent);
-            int[] key = snapKeyBuf;
-            if (!OverlaySnapshotKey.changed(lastSnapKey, key, len)) {
+            GunButtonLayout first = buttons.get(0);
+            int cardW = (first.isLaidOut() && first.getWidth() > 0)
+                    ? first.getWidth()
+                    : ShopOverlayLayout.computeCardWidth(viewportW - gridPadLeft - gridPadRight, cardColumns, cardGap);
+            if (cardW <= 0) {
+                activeOverlay = null;
+                lastSnapKey = null;
                 return;
             }
-            lastSnapKey = Arrays.copyOf(key, len);
+            int iconH = Math.round(first.getIconAreaHeight());
+            if (iconH <= 0) {
+                iconH = cardIconH;
+            }
 
-            List<SlotIcon> icons = new ArrayList<>(count);
-            for (GunButtonLayout card : buttons) {
-                if (card == null || !card.isLaidOut() || card.getWidth() <= 0 || card.getIconAreaHeight() <= 0) {
-                    continue;
+            ShopOverlayLayout.GridGeometry geometry = new ShopOverlayLayout.GridGeometry(
+                    gridX0, gridY0, viewportW, viewportH,
+                    gridPadLeft, gridPadTop,
+                    cardColumns, cardW, cardH, cardGap, cardGap, iconH,
+                    count, typeOrdinal, scrollY);
+
+            List<ShopOverlayLayout.IconEntry> iconEntries = ShopOverlayLayout.computeGridIcons(geometry);
+            SlotIcon[] grid = new SlotIcon[iconEntries.size()];
+            for (int i = 0; i < iconEntries.size(); i++) {
+                ShopOverlayLayout.IconEntry e = iconEntries.get(i);
+                grid[i] = new SlotIcon(ItemType.values()[e.typeOrdinal], e.index, e.x, e.y, e.w, e.h, e.fullH);
+            }
+            List<ShopOverlayLayout.CardDesc> cards = ShopOverlayLayout.computeCards(geometry);
+
+            SlotIcon detailsIcon = computeDetailsIcon();
+
+            activeOverlay = new OverlaySnapshot(grid, gridX0, gridY0, viewportW, viewportH, detailsIcon, cards);
+
+            if (SHOP_DEBUG) {
+                int selOrd = selectedType != null ? selectedType.ordinal() : -1;
+                int[] key = ShopOverlayLayout.buildChangeKey(cards, selOrd, selectedIndex, scrollY);
+                if (OverlaySnapshotKey.changed(lastSnapKey, key, key.length)) {
+                    lastSnapKey = Arrays.copyOf(key, key.length);
+                    logSnapshotChange(key, trigger);
                 }
-                ViewParent parent = card.getParent();
-                int rowTop = (parent instanceof View v && v.isLaidOut()) ? v.getTop() : 0;
-                int contentTop = rowTop + card.getTop();
-                int contentLeft = card.getLeft();
-                float windowX = gridX0 + contentLeft;
-                float windowY = gridY0 + contentTop - scrollY;
-                icons.add(new SlotIcon(card.type, card.index, windowX, windowY,
-                        card.getWidth(), card.getIconAreaHeight()));
             }
-
-            SlotIcon detailsIcon = null;
-            if (detailsVisible) {
-                detailsIconView.getLocationInWindow(tmpLocation);
-                detailsIcon = new SlotIcon(selectedType, selectedIndex, tmpLocation[0], tmpLocation[1],
-                        detailsIconView.getWidth(), detailsIconView.getHeight());
-            }
-
-            activeOverlay = new OverlaySnapshot(icons.toArray(new SlotIcon[0]),
-                    gridX0, gridY0, viewportW, viewportH, detailsIcon, hoveredStack);
         }
 
-        private int buildSnapshotKey(List<GunButtonLayout> buttons, int count, int selOrd, int selIdx,
-                                     int scrollY, int gridX0, int gridY0, int viewportW, int viewportH,
-                                     boolean detailsVisible, int hoverIdent) {
-            int need = 10 + count * 6;
-            int[] key = snapKeyBuf;
-            if (key.length < need) {
-                key = new int[need];
-                snapKeyBuf = key;
+        private SlotIcon computeDetailsIcon() {
+            if (selectedType == null || selectedIndex < 0 || detailsIconView == null) return null;
+            if (!detailsIconView.isLaidOut() || detailsIconView.getWidth() <= 0) return null;
+            detailsIconView.getLocationInWindow(tmpLocation);
+            float dw = detailsIconView.getWidth();
+            float dh = detailsIconView.getHeight();
+            return new SlotIcon(selectedType, selectedIndex, tmpLocation[0], tmpLocation[1], dw, dh, dh);
+        }
+
+        private void logSnapshotChange(int[] key, String trigger) {
+            long now = System.currentTimeMillis();
+            if (now - lastSnapshotDebugLogTime < 500L) {
+                return;
             }
-            key[0] = selOrd;
-            key[1] = selIdx;
-            key[2] = count;
-            key[3] = scrollY;
-            key[4] = gridX0;
-            key[5] = gridY0;
-            key[6] = viewportW;
-            key[7] = viewportH;
-            key[8] = detailsVisible ? 1 : 0;
-            key[9] = hoverIdent;
-            int p = 10;
-            for (GunButtonLayout card : buttons) {
-                if (card == null) {
-                    key[p++] = -1;
-                    key[p++] = -1;
-                    key[p++] = Float.floatToIntBits(-1f);
-                    key[p++] = Float.floatToIntBits(-1f);
-                    key[p++] = Float.floatToIntBits(-1f);
-                    key[p++] = Float.floatToIntBits(-1f);
-                    continue;
+            lastSnapshotDebugLogTime = now;
+            StringBuilder sb = new StringBuilder("[BO-Shop] snapshot changed trigger=").append(trigger).append(" sel=").append(key[0])
+                    .append(" idx=").append(key[1]).append(" count=").append(key[2])
+                    .append(" scroll=").append(key[3]).append(" types=[");
+            int p = 4;
+            int count = key[2];
+            for (int i = 0; i < count; i++) {
+                if (i > 0) {
+                    sb.append(',');
                 }
-                float x;
-                float y;
-                float w;
-                float h;
-                if (card.isLaidOut() && card.getWidth() > 0 && card.getIconAreaHeight() > 0) {
-                    ViewParent parent = card.getParent();
-                    int rowTop = (parent instanceof View v && v.isLaidOut()) ? v.getTop() : 0;
-                    int contentTop = rowTop + card.getTop();
-                    int contentLeft = card.getLeft();
-                    w = card.getWidth();
-                    h = card.getIconAreaHeight();
-                    x = gridX0 + contentLeft;
-                    y = gridY0 + contentTop - scrollY;
-                } else {
-                    x = -1f;
-                    y = -1f;
-                    w = -1f;
-                    h = -1f;
-                }
-                key[p++] = card.type.ordinal();
-                key[p++] = card.index;
-                key[p++] = Float.floatToIntBits(x);
-                key[p++] = Float.floatToIntBits(y);
-                key[p++] = Float.floatToIntBits(w);
-                key[p++] = Float.floatToIntBits(h);
+                sb.append(key[p]).append(':').append(key[p + 1]);
+                p += 6;
             }
-            return p;
+            sb.append(']');
+            LOGGER.info(sb.toString());
         }
 
         @Override
@@ -973,7 +977,14 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             if (gridScroll != null) {
                 gridScroll.setScrollBarSize((int) Math.max(3, 5 * s));
             }
-            itemsContainer.setPadding(0, 0, (int) (10 * s), (int) (12 * s));
+            this.cardH = (int) (CARD_HEIGHT * s);
+            this.cardGap = (int) (CARD_GAP * s);
+            this.cardIconH = (int) (GunButtonLayout.ICON_AREA_HEIGHT * s);
+            gridPadLeft = 0;
+            gridPadTop = 0;
+            gridPadRight = (int) (10 * s);
+            gridPadBottom = (int) (12 * s);
+            itemsContainer.setPadding(gridPadLeft, gridPadTop, gridPadRight, gridPadBottom);
 
             scaleDetails(s);
         }
@@ -1042,15 +1053,10 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
                 post(this::rebuildItems);
                 post(this::applySelectionToCards);
             }
+            post(() -> publishOverlaySnapshot("layout"));
         }
 
-        @Override
-        public void draw(@NotNull Canvas canvas) {
-            super.draw(canvas);
-            updateText();
-            refreshDetails();
-            publishOverlaySnapshot();
-        }
+
 
         public void updateText() {
             int money = CSClientData.getMoney();
@@ -1094,13 +1100,9 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             }
         }
 
-        private boolean isDetailsIconInsideWindow() {
-            if (detailsIconView == null || !detailsIconView.isLaidOut() || detailsIconView.getWidth() <= 0) return false;
-            if (windowWidth <= 0) return true;
-            detailsIconView.getLocationInWindow(tmpLocation);
-            int r = tmpLocation[0] + detailsIconView.getWidth();
-            int b = tmpLocation[1] + detailsIconView.getHeight();
-            return tmpLocation[0] >= windowLeft && r <= windowLeft + windowWidth && tmpLocation[1] >= windowTop && b <= windowTop + windowHeight;
+        private void onWindowLayoutChange(View v, int left, int top, int right, int bottom,
+                                         int oldLeft, int oldTop, int oldRight, int oldBottom) {
+            publishOverlaySnapshot("layout-change");
         }
 
         private void refreshDetails() {
@@ -1130,7 +1132,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
                 cachedBuyState = -1;
             }
 
-            detailsIconView.setVisibility(isDetailsIconInsideWindow() ? View.VISIBLE : View.INVISIBLE);
+            detailsIconView.setVisibility(View.VISIBLE);
 
             boolean changed = (selectedType != renderedType || selectedIndex != renderedIndex);
             if (changed || refreshFlag) {
@@ -1558,16 +1560,6 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
                 badgeText.setVisibility(View.VISIBLE);
             } else {
                 badgeText.setVisibility(View.GONE);
-            }
-        }
-
-        @Override
-        public void onHoverChanged(boolean hovered) {
-            super.onHoverChanged(hovered);
-            if (hovered) {
-                hoveredButton = this;
-            } else if (hoveredButton == this) {
-                hoveredButton = null;
             }
         }
 

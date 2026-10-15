@@ -327,6 +327,7 @@
   "blockoffensive.shop.title.attachment": "配件",
   "blockoffensive.shop.title.explosives": "爆炸物",
   "blockoffensive.shop.title.support": "补给",
+  "blockoffensive.shop.title.melee": "近战",
   "blockoffensive.shop.title.vehicle_ammo": "载具弹药",
   "blockoffensive.shop.team.purchase": "%1$s购买了 %2$s ($%3$s)",
   "blockoffensive.shop.header.title": "\u8d2d\u4e70\u83dc\u5355",
