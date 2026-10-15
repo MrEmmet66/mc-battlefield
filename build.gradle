@@ -273,3 +273,40 @@ task copyMixinToClasses(type: Copy) {
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
+
+// FPSMatch fork build + local-maven install. Deliberately NOT wired into the
+// normal `build` task: the FPSMatch build is slow and needs network/proxy
+// settings. Run it explicitly (`./gradlew buildFpsmatch`), then `./gradlew build`.
+def fpsmatchModuleDir = file("${rootDir}/FPSMatch")
+def fpsmatchLocalMavenDir = file("${rootDir}/local-maven/com/ptcrys/fpsmatch/1.3.0")
+
+tasks.register('buildFpsmatch', Exec) {
+    group = 'fpsmatch'
+    description = 'Builds the FPSMatch submodule jar (-x test) and copies the reobf jar into local-maven.'
+
+    workingDir fpsmatchModuleDir
+
+    def isWindows = System.getProperty('os.name').toLowerCase().contains('windows')
+    if (isWindows) {
+        commandLine 'cmd', '/c', 'gradlew.bat', 'build', '-x', 'test'
+    } else {
+        commandLine './gradlew', 'build', '-x', 'test'
+    }
+
+    doLast {
+        def libsDir = file("${fpsmatchModuleDir}/build/libs")
+        def candidates = libsDir.isDirectory()
+                ? libsDir.listFiles().findAll { File f ->
+                    f.isFile() && f.name.toLowerCase().endsWith('.jar') && !f.name.toLowerCase().contains('sources')
+                }
+                : []
+        if (!candidates) {
+            throw new GradleException("No FPSMatch reobf jar found in ${libsDir}")
+        }
+        def newest = candidates.max { it.lastModified() }
+        fpsmatchLocalMavenDir.mkdirs()
+        def target = new File(fpsmatchLocalMavenDir, 'fpsmatch-1.3.0.jar')
+        target.bytes = newest.bytes
+        logger.lifecycle("FPSMatch: copied ${newest.name} (${newest.length()} bytes) -> ${target}")
+    }
+}
