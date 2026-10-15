@@ -25,6 +25,7 @@ import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomActionC2SPa
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomDetail;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomPlayerInfo;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRoomSummary;
+import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapRosterRequestC2SPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.MapSelectionSnapshotS2CPacket;
 import com.phasetranscrystal.fpsmatch.common.packet.mapselect.OpenMapSelectionC2SPacket;
 import net.minecraft.client.Minecraft;
@@ -172,6 +173,9 @@ public final class Ldlib2MapSelectionScreen extends ModularUIScreen implements F
 
     @Override
     public void applyDetail(MapRoomDetail detail) {
+        if (selected != null && !sameRoom(selected, detail.summary())) {
+            return;
+        }
         this.detail = detail;
         refreshing = false;
         applyUpdating();
@@ -229,6 +233,10 @@ public final class Ldlib2MapSelectionScreen extends ModularUIScreen implements F
     public void removed() {
         modularUI.onRemoved();
         super.removed();
+    }
+
+    private void requestRoster(MapRoomSummary summary) {
+        FPSMatch.sendToServer(new MapRosterRequestC2SPacket(summary.gameType(), summary.mapName()));
     }
 
     private void refreshList() {
@@ -462,6 +470,7 @@ public final class Ldlib2MapSelectionScreen extends ModularUIScreen implements F
         selected = summary;
         detail = null;
         pendingOpen = PendingOpen.NONE;
+        requestRoster(summary);
         refreshList();
         refreshDetail();
         refreshActionState();
