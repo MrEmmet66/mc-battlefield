@@ -6,6 +6,7 @@ import com.ptcrys.blockoffensive.data.persistence.CSGameMapFixer;
 import com.ptcrys.blockoffensive.data.persistence.CSShopArmorFixer;
 import com.ptcrys.blockoffensive.data.persistence.CSShopDefaultsFixer;
 import com.ptcrys.blockoffensive.data.persistence.CSShopSuperbWarfareFixer;
+import com.ptcrys.blockoffensive.data.persistence.CSShopWeaponFireModeFixer;
 import com.ptcrys.blockoffensive.map.shop.ItemType;
 import com.phasetranscrystal.fpsmatch.common.event.register.RegisterFPSMSaveDataEvent;
 import com.phasetranscrystal.fpsmatch.common.event.register.RegisterFPSMapEvent;
@@ -37,10 +38,12 @@ public class MapRegister {
         DataFixer.getInstance().registerJsonFixer(CSDeathMatchMap.class,2, new CSShopSuperbWarfareFixer());
         DataFixer.getInstance().registerJsonFixer(CSGameMap.class,3, new CSShopArmorFixer());
         DataFixer.getInstance().registerJsonFixer(CSDeathMatchMap.class,3, new CSShopArmorFixer());
+        DataFixer.getInstance().registerJsonFixer(CSGameMap.class,4, new CSShopWeaponFireModeFixer());
+        DataFixer.getInstance().registerJsonFixer(CSDeathMatchMap.class,4, new CSShopWeaponFireModeFixer());
 
         event.registerData(CSGameMap.class,"CSGameMaps",
                 new SaveHolder.Builder<>(CSGameMap.CODEC)
-                        .withVersion(4)
+                        .withVersion(5)
                         .withLoadHandler(CSGameMap::load)
                         .withSaveHandler(CSGameMap::save)
                         .build()
@@ -48,7 +51,7 @@ public class MapRegister {
 
         event.registerData(CSDeathMatchMap.class,"CSDeathMatchMaps",
                 new SaveHolder.Builder<>(CSDeathMatchMap.CODEC)
-                        .withVersion(4)
+                        .withVersion(5)
                         .withLoadHandler(CSDeathMatchMap::load)
                         .withSaveHandler(CSDeathMatchMap::save)
                         .build()

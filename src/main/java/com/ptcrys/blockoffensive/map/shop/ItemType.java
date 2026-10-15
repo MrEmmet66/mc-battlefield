@@ -6,6 +6,7 @@ import com.phasetranscrystal.fpsmatch.core.shop.INamedType;
 import com.phasetranscrystal.fpsmatch.core.shop.functional.ListenerModule;
 import com.phasetranscrystal.fpsmatch.core.shop.slot.ShopSlot;
 import com.ptcrys.blockoffensive.BlockOffensive;
+import com.ptcrys.blockoffensive.util.GunStacks;
 import com.tacz.guns.api.item.builder.AmmoItemBuilder;
 import com.tacz.guns.api.item.builder.AttachmentItemBuilder;
 import com.tacz.guns.api.item.builder.GunItemBuilder;
@@ -386,6 +387,7 @@ public enum ItemType implements INamedType {
             ResourceLocation rl = new ResourceLocation("tacz", gunId);
             ItemStack stack = GunItemBuilder.create()
                     .setId(rl)
+                    .setFireMode(GunStacks.defaultFireMode(rl))
                     .setAmmoInBarrel(true)
                     .forceBuild();
             list.add(new ShopSlot(stack, cost));

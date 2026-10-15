@@ -18,6 +18,7 @@ import com.ptcrys.blockoffensive.net.spec.CSGameWeaponDataS2CPacket;
 import com.ptcrys.blockoffensive.sound.BOSoundRegister;
 import com.ptcrys.blockoffensive.spectator.BOSpecManager;
 import com.ptcrys.blockoffensive.util.BOUtil;
+import com.ptcrys.blockoffensive.util.GunStacks;
 import com.phasetranscrystal.fpsmatch.FPSMatch;
 import com.phasetranscrystal.fpsmatch.common.attributes.ammo.BulletproofArmorAttribute;
 import com.phasetranscrystal.fpsmatch.common.capability.map.GameEndTeleportCapability;
@@ -746,6 +747,7 @@ public abstract class CSMap extends BaseRoundMap<String, CSRoundResultReason> {
         try {
             ItemStack gun = com.tacz.guns.api.item.builder.GunItemBuilder.create()
                     .setId(new ResourceLocation("tacz", "glock_17"))
+                    .setFireMode(GunStacks.defaultFireMode(new ResourceLocation("tacz", "glock_17")))
                     .setAmmoInBarrel(true)
                     .forceBuild();
             player.getInventory().add(com.phasetranscrystal.fpsmatch.util.FPSMUtil.fixGunItem(gun));
