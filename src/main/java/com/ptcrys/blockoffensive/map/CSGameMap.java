@@ -1976,6 +1976,7 @@ public class CSGameMap extends CSMap{
                     // Только ванильный дроп. playerDeadDropWeapon здесь НЕ вызываем:
                     // он спавнит MatchDropEntity из живого стака инвентаря, не забирая его,
                     // и следом dropAll() роняет тот же ствол второй раз ванильной сущностью.
+                    stripGlockDrops(dead);
                     dead.getInventory().dropAll();
                     FPSMatch.LOGGER.info("[BO-Death] drops done player={} invAfter={}",
                             dead.getScoreboardName(), countNonEmptyStacks(dead));

@@ -358,6 +358,7 @@ public class CSDeathMatchMap extends CSMap {
                 java.util.Optional.empty()
         );
         if (!BOConfig.common.keepInventory.get()) {
+            stripGlockDrops(dead);
             dead.getInventory().dropAll();
             this.syncInventory(dead);
             com.phasetranscrystal.fpsmatch.FPSMatch.LOGGER.info("[BO-Death] drops done player={} invAfter={}",
