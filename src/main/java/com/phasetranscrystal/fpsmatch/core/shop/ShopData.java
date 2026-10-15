@@ -136,7 +136,11 @@ public class ShopData<T extends Enum<T> & INamedType> {
      * @param money 玩家的金钱数量
      */
     public void setMoney(int money) {
-        this.money = Math.max(0, Math.min(16000, money));
+        if (money == -1) {
+            this.money = -1;
+        } else {
+            this.money = Math.max(0, Math.min(16000, money));
+        }
     }
 
     /**
