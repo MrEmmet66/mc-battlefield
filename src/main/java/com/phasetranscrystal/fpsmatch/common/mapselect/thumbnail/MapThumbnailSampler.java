@@ -4,6 +4,7 @@ import com.phasetranscrystal.fpsmatch.core.data.AreaData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.MapColor;
 
 public final class MapThumbnailSampler {
@@ -19,8 +20,11 @@ public final class MapThumbnailSampler {
     /**
      * Sample a top-down, vanilla-map-style colour image of {@code area}. Each output pixel is the
      * packed {@link MapColor} id of the highest non-air, non-{@link MapColor#NONE} block in that
-     * column, downsized to at most {@link ThumbnailGeometry#MAX_DIMENSION} pixels on the longer side.
-     * Must be called on the server thread.
+     * column. The column is traced from the world surface (via {@link Heightmap.Types#WORLD_SURFACE})
+     * down to the build floor, so flat map areas whose configured Y range is only a couple of blocks
+     * tall near the surface still resolve a real colour instead of sampling air. Downsampled to at
+     * most {@link ThumbnailGeometry#MAX_DIMENSION} pixels on the longer side. Must be called on the
+     * server thread.
      */
     public static Sample sample(ServerLevel level, AreaData area) {
         if (level == null || area == null) {
@@ -30,8 +34,6 @@ public final class MapThumbnailSampler {
         BlockPos p2 = area.pos2();
         int minX = Math.min(p1.getX(), p2.getX());
         int maxX = Math.max(p1.getX(), p2.getX());
-        int minY = Math.min(p1.getY(), p2.getY());
-        int maxY = Math.max(p1.getY(), p2.getY());
         int minZ = Math.min(p1.getZ(), p2.getZ());
         int maxZ = Math.max(p1.getZ(), p2.getZ());
 
@@ -51,15 +53,16 @@ public final class MapThumbnailSampler {
             int z = ThumbnailGeometry.mapOutputToSource(oy, outH, minZ, srcH);
             for (int ox = 0; ox < outW; ox++) {
                 int x = ThumbnailGeometry.mapOutputToSource(ox, outW, minX, srcW);
-                pixels[oy * outW + ox] = (byte) sampleColumn(level, pos, x, z, minY, maxY);
+                pixels[oy * outW + ox] = (byte) sampleColumn(level, pos, x, z);
             }
         }
         return new Sample(outW, outH, pixels);
     }
 
-    private static int sampleColumn(ServerLevel level, BlockPos.MutableBlockPos pos,
-                                    int x, int z, int minY, int maxY) {
-        for (int y = maxY; y >= minY; y--) {
+    private static int sampleColumn(ServerLevel level, BlockPos.MutableBlockPos pos, int x, int z) {
+        int topY = level.getHeight(Heightmap.Types.WORLD_SURFACE, x, z) - 1;
+        int bottom = level.getMinBuildHeight();
+        for (int y = topY; y >= bottom; y--) {
             pos.set(x, y, z);
             BlockState state = level.getBlockState(pos);
             if (state.isAir()) {

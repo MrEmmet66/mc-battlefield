@@ -52,6 +52,7 @@ public final class MapThumbnailCache {
             FPSMatch.LOGGER.warn("MapThumbnailCache.store called off the render thread; ignored");
             return;
         }
+        FPSMatch.LOGGER.info("[MapThumbnail] response received {}:{} {}x{}", gameType, mapName, width, height);
         String key = key(gameType, mapName);
         NativeImage image = new NativeImage(width, height, true);
         DynamicTexture texture = null;
@@ -66,6 +67,7 @@ public final class MapThumbnailCache {
             ResourceLocation location = location(key);
             TextureManagerApi.releaseIfPresent(location);
             Minecraft.getInstance().getTextureManager().register(location, texture);
+            FPSMatch.LOGGER.info("[MapThumbnail] texture registered {} ({}x{})", location, width, height);
             Entry previous = TEXTURES.put(key, new Entry(location, width, height));
             if (previous != null && !previous.location().equals(location)) {
                 Minecraft.getInstance().getTextureManager().release(previous.location());
@@ -108,6 +110,7 @@ public final class MapThumbnailCache {
             }
             LAST_REQUEST.put(key, now);
         }
+        FPSMatch.LOGGER.info("[MapThumbnail] request sent {}:{} force={}", gameType, mapName, force);
         FPSMatch.sendToServer(new MapThumbnailRequestC2SPacket(gameType, mapName, force));
     }
 

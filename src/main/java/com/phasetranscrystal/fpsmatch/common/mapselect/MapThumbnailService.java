@@ -30,10 +30,12 @@ public final class MapThumbnailService {
         if (player == null || gameType == null || mapName == null) {
             return;
         }
+        FPSMatch.LOGGER.info("[MapThumbnail] request received {}:{} force={}", gameType, mapName, force);
         String key = gameType + '\n' + mapName;
         if (!force) {
             CachedThumbnail cached = CACHE.get(key);
             if (cached != null && System.currentTimeMillis() - cached.createdAt() < CACHE_TTL_MILLIS) {
+                FPSMatch.LOGGER.info("[MapThumbnail] served from cache {}:{} {}x{}", gameType, mapName, cached.width(), cached.height());
                 send(player, gameType, mapName, cached);
                 return;
             }
@@ -41,6 +43,7 @@ public final class MapThumbnailService {
 
         Optional<BaseMap> found = MapRoomQueryService.findMap(gameType, mapName);
         if (found.isEmpty()) {
+            FPSMatch.LOGGER.info("[MapThumbnail] map not found {}:{}", gameType, mapName);
             return;
         }
         BaseMap map = found.get();
@@ -48,8 +51,10 @@ public final class MapThumbnailService {
             MapThumbnailSampler.Sample sample =
                     MapThumbnailSampler.sample(map.getServerLevel(), map.getMapArea());
             if (sample.width() <= 0 || sample.height() <= 0) {
+                FPSMatch.LOGGER.info("[MapThumbnail] empty sample {}:{}", gameType, mapName);
                 return;
             }
+            FPSMatch.LOGGER.info("[MapThumbnail] sampled {}:{} {}x{}", gameType, mapName, sample.width(), sample.height());
             CachedThumbnail computed = new CachedThumbnail(
                     sample.width(),
                     sample.height(),
@@ -64,6 +69,7 @@ public final class MapThumbnailService {
     }
 
     private static void send(ServerPlayer player, String gameType, String mapName, CachedThumbnail cached) {
+        FPSMatch.LOGGER.info("[MapThumbnail] response sent {}:{} {}x{}", gameType, mapName, cached.width(), cached.height());
         FPSMatch.sendToPlayer(player, new MapThumbnailS2CPacket(
                 gameType, mapName, cached.width(), cached.height(), cached.pixels()
         ));

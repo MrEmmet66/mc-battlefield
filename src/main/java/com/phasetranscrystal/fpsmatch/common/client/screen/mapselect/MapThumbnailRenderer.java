@@ -50,7 +50,7 @@ public final class MapThumbnailRenderer {
             return;
         }
         renderGradientBlock(graphics, x, y, width, height, mapName, gameType, displayName, showLabel);
-        MapThumbnailCache.request(mapName, gameType);
+        MapThumbnailCache.request(gameType, mapName);
     }
 
     private static boolean tryRenderTexture(GuiGraphics graphics, int x, int y, int width, int height, String texturePath) {
@@ -78,7 +78,7 @@ public final class MapThumbnailRenderer {
         if (mapName == null || mapName.isEmpty()) {
             return false;
         }
-        Optional<MapThumbnailCache.Thumbnail> thumb = MapThumbnailCache.resolve(mapName, gameType);
+        Optional<MapThumbnailCache.Thumbnail> thumb = MapThumbnailCache.resolve(gameType, mapName);
         if (thumb.isEmpty()) {
             return false;
         }
