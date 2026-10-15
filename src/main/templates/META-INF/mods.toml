@@ -45,5 +45,9 @@ versionRange="${ldlib2_version_range}"
 ordering="AFTER"
 side="BOTH"
 
-[[mixins]]
-config = "blockoffensive.mixins.json"
+[[dependencies."${mod_id}"]]
+modId="superbwarfare"
+mandatory=false
+versionRange="[0.8.9,)"
+ordering="NONE"
+side="BOTH"

@@ -1,5 +1,6 @@
 package com.ptcrys.blockoffensive.client.screen;
 
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.ptcrys.blockoffensive.util.BOUtil;
 import com.phasetranscrystal.fpsmatch.common.client.FPSMClient;
 import net.minecraft.client.gui.GuiGraphics;
@@ -21,7 +22,7 @@ public class TeamChatScreen extends ChatScreen {
         if(this.input.getValue().isEmpty()){
             int x = 4;
             int y = this.height - 12;
-            pGuiGraphics.drawString(minecraft.font,TITLE,x,y,BOUtil.getTeamColor(minecraft.player.getUUID()));
+            pGuiGraphics.drawString(minecraft.font,TITLE,x,y,BOTheme.TEXT_SECONDARY);
         }
     }
     

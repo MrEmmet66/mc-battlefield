@@ -1,7 +1,7 @@
 package com.ptcrys.blockoffensive.client.screen.hud;
 
 import com.ptcrys.blockoffensive.client.data.CSClientData;
-import com.phasetranscrystal.fpsmatch.common.client.screen.mapselect.FPSMGuiTheme;
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.phasetranscrystal.fpsmatch.core.minimap.hud.ScreenRect;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -62,13 +62,14 @@ public final class CSBombFuseHud {
         // 临近爆炸的红色脉冲
         float fraction = Mth.clamp(fuse / (float) total, 0f, 1f);
         float pulse = 0.6f + 0.4f * (float) Math.abs(Math.sin(System.currentTimeMillis() / 200.0));
+        int dangerColor = fuse <= 100 ? BOTheme.STATE_ERROR : BOTheme.STATE_WARN;
         int danger = fraction < 0.25f
-                ? withPulse(FPSMGuiTheme.ACCENT_DANGER, pulse)
-                : FPSMGuiTheme.ACCENT_DANGER;
+                ? withPulse(dangerColor, pulse)
+                : dangerColor;
 
-        graphics.fill(left, top, right, bottom, FPSMGuiTheme.BG_PANEL);
+        graphics.fill(left, top, right, bottom, BOTheme.PANEL);
         graphics.fill(left, top, right, top + 2, danger);
-        drawBorder(graphics, left, top, right, bottom, FPSMGuiTheme.BORDER_INNER);
+        drawBorder(graphics, left, top, right, bottom, BOTheme.BORDER);
 
         // 文本：C4 + 剩余秒数
         int seconds = Mth.ceil(fuse / 20.0f);
@@ -80,7 +81,7 @@ public final class CSBombFuseHud {
         int barY = top + 17;
         int barW = panelWidth - 16;
         int barH = 3;
-        graphics.fill(barX, barY, barX + barW, barY + barH, FPSMGuiTheme.SCROLL_TRACK);
+        graphics.fill(barX, barY, barX + barW, barY + barH, BOTheme.BORDER);
         graphics.fill(barX, barY, barX + (int) (barW * fraction), barY + barH, danger);
     }
 

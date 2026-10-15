@@ -1,6 +1,9 @@
 package com.ptcrys.blockoffensive.map.shop;
 
+import com.phasetranscrystal.fpsmatch.FPSMatch;
+import com.phasetranscrystal.fpsmatch.core.FPSMCore;
 import com.phasetranscrystal.fpsmatch.core.shop.INamedType;
+import com.phasetranscrystal.fpsmatch.core.shop.functional.ListenerModule;
 import com.phasetranscrystal.fpsmatch.core.shop.slot.ShopSlot;
 import com.ptcrys.blockoffensive.BlockOffensive;
 import com.tacz.guns.api.item.builder.AmmoItemBuilder;
@@ -150,25 +153,25 @@ public enum ItemType implements INamedType {
         if (weaponTemplates == null) {
             weaponTemplates = new ArrayList<>();
             if (ModList.get().isLoaded("tacz")) {
-                // Пистолеты: дешёвый второй ствол, Glock бесплатен для старта
+                // РџРёСЃС‚РѕР»РµС‚С‹: РґРµС€С‘РІС‹Р№ РІС‚РѕСЂРѕР№ СЃС‚РІРѕР», Glock Р±РµСЃРїР»Р°С‚РµРЅ РґР»СЏ СЃС‚Р°СЂС‚Р°
                 addGun(weaponTemplates, "glock_17", 0);
                 addGun(weaponTemplates, "m1911", 350);
                 addGun(weaponTemplates, "cz75", 500);
                 addGun(weaponTemplates, "b93r", 600);
                 addGun(weaponTemplates, "deagle", 700);
-                // ПП: фарм-класс (награда 600), окупаются за 2-4 килла
+                // РџРџ: С„Р°СЂРј-РєР»Р°СЃСЃ (РЅР°РіСЂР°РґР° 600), РѕРєСѓРїР°СЋС‚СЃСЏ Р·Р° 2-4 РєРёР»Р»Р°
                 addGun(weaponTemplates, "uzi", 1200);
                 addGun(weaponTemplates, "hk_mp5a5", 1500);
                 addGun(weaponTemplates, "ump45", 1700);
                 addGun(weaponTemplates, "p90", 2000);
                 addGun(weaponTemplates, "vector45", 2300);
-                // Дробовики: высокий урон вблизи (награда 900)
+                // Р”СЂРѕР±РѕРІРёРєРё: РІС‹СЃРѕРєРёР№ СѓСЂРѕРЅ РІР±Р»РёР·Рё (РЅР°РіСЂР°РґР° 900)
                 addGun(weaponTemplates, "db_short", 1100);
                 addGun(weaponTemplates, "m870", 1700);
                 addGun(weaponTemplates, "m1014", 2200);
                 addGun(weaponTemplates, "spas_12", 2500);
                 addGun(weaponTemplates, "aa12", 3800);
-                // Винтовки: ядро (награда 300), ~9-13 киллов на ствол
+                // Р’РёРЅС‚РѕРІРєРё: СЏРґСЂРѕ (РЅР°РіСЂР°РґР° 300), ~9-13 РєРёР»Р»РѕРІ РЅР° СЃС‚РІРѕР»
                 addGun(weaponTemplates, "ak47", 2700);
                 addGun(weaponTemplates, "m16a4", 2900);
                 addGun(weaponTemplates, "m4a1", 3100);
@@ -177,12 +180,12 @@ public enum ItemType implements INamedType {
                 addGun(weaponTemplates, "scar_l", 3500);
                 addGun(weaponTemplates, "g36k", 3600);
                 addGun(weaponTemplates, "fn_fal", 3800);
-                // Снайперы: налог на кемп (награда всего 100), цены сдержанные
+                // РЎРЅР°Р№РїРµСЂС‹: РЅР°Р»РѕРі РЅР° РєРµРјРї (РЅР°РіСЂР°РґР° РІСЃРµРіРѕ 100), С†РµРЅС‹ СЃРґРµСЂР¶Р°РЅРЅС‹Рµ
                 addGun(weaponTemplates, "m700", 3200);
                 addGun(weaponTemplates, "ai_awp", 4750);
                 addGun(weaponTemplates, "m95", 5500);
                 addGun(weaponTemplates, "m107", 6200);
-                // Пулемёты: дорогие, для удержания позиций всей командой
+                // РџСѓР»РµРјС‘С‚С‹: РґРѕСЂРѕРіРёРµ, РґР»СЏ СѓРґРµСЂР¶Р°РЅРёСЏ РїРѕР·РёС†РёР№ РІСЃРµР№ РєРѕРјР°РЅРґРѕР№
                 addGun(weaponTemplates, "rpk", 4200);
                 addGun(weaponTemplates, "m249", 5200);
                 addGun(weaponTemplates, "fn_evolys", 5800);
@@ -199,7 +202,7 @@ public enum ItemType implements INamedType {
         if (ammoTemplates == null) {
             ammoTemplates = new ArrayList<>();
             if (ModList.get().isLoaded("tacz")) {
-                // Калибры строго под стволы из магазина; цена пачки ~5-10% цены ствола
+                // РљР°Р»РёР±СЂС‹ СЃС‚СЂРѕРіРѕ РїРѕРґ СЃС‚РІРѕР»С‹ РёР· РјР°РіР°Р·РёРЅР°; С†РµРЅР° РїР°С‡РєРё ~5-10% С†РµРЅС‹ СЃС‚РІРѕР»Р°
                 addAmmo(ammoTemplates, "9mm", 30, 50);
                 addAmmo(ammoTemplates, "45acp", 24, 60);
                 addAmmo(ammoTemplates, "50ae", 14, 80);
@@ -223,12 +226,21 @@ public enum ItemType implements INamedType {
     private static synchronized List<ShopSlot> getArmorTemplates() {
         if (armorTemplates == null) {
             armorTemplates = new ArrayList<>();
-            // Броня Superb Warfare: ванильные ArmorItem, работают сами по себе.
-            addSWItem(armorTemplates, "us_helmet_pasgt", 1, 450);
-            addSWItem(armorTemplates, "us_chest_iotv", 1, 1100);
-            addSWItem(armorTemplates, "ru_helmet_6b47", 1, 450);
-            addSWItem(armorTemplates, "ru_chest_6b43", 1, 1100);
-            addSWItem(armorTemplates, "armor_plate", 1, 200);
+            addArmorItem(armorTemplates, "bulletproof_armor", 650, "bulletproof_without_helmet");
+            addArmorItem(armorTemplates, "bulletproof_with_helmet", 1000, "bulletproof_with_helmet");
+
+            // Superb Warfare ballistic armor (vanilla HEAD/CHEST slots, adds the
+            // superbwarfare:bullet_resistance attribute); no NBT or Curios needed.
+            // Prices track BULLET_RESISTANCE (helmet 0.1/0.2, chest 0.5) and the
+            // armor_plate consumable (+15 armor points to the worn chest armor).
+            if (swLoaded()) {
+                addItem(armorTemplates, "superbwarfare", "us_helmet_pasgt", 350);
+                addItem(armorTemplates, "superbwarfare", "ru_helmet_6b47", 400);
+                addItem(armorTemplates, "superbwarfare", "ge_helmet_m_35", 300);
+                addItem(armorTemplates, "superbwarfare", "us_chest_iotv", 900);
+                addItem(armorTemplates, "superbwarfare", "ru_chest_6b43", 1000);
+                addItem(armorTemplates, "superbwarfare", "armor_plate", 300);
+            }
         }
         return armorTemplates;
     }
@@ -236,11 +248,29 @@ public enum ItemType implements INamedType {
     private static synchronized List<ShopSlot> getExplosivesTemplates() {
         if (explosivesTemplates == null) {
             explosivesTemplates = new ArrayList<>();
-            addSWItem(explosivesTemplates, "m18_smoke_grenade", 1, 100);
-            addSWItem(explosivesTemplates, "hand_grenade", 1, 250);
-            addSWItem(explosivesTemplates, "rgo_grenade", 1, 400);
-            addSWItem(explosivesTemplates, "claymore_mine", 1, 350);
-            addSWItem(explosivesTemplates, "tm_62", 1, 800);
+            if (swLoaded()) {
+                addSWItem(explosivesTemplates, "hand_grenade", 1, 300);
+                addSWItem(explosivesTemplates, "rgo_grenade", 1, 400);
+                addSWItem(explosivesTemplates, "m18_smoke_grenade", 1, 300);
+                addSWItem(explosivesTemplates, "claymore_mine", 1, 600);
+                addC4Item(explosivesTemplates, false, 900);
+                addC4Item(explosivesTemplates, true, 1100);
+                addSWItem(explosivesTemplates, "detonator", 1, 150);
+                addNonSWGrenades(explosivesTemplates);
+            } else if (ModList.get().isLoaded("csgrenades")) {
+                addItem(explosivesTemplates, "csgrenades", "hegrenade", 300);
+                addItem(explosivesTemplates, "csgrenades", "flashbang", 200);
+                addItem(explosivesTemplates, "csgrenades", "smokegrenade", 300);
+                addItem(explosivesTemplates, "csgrenades", "molotov", 400);
+                addItem(explosivesTemplates, "csgrenades", "incendiary", 500);
+                addItem(explosivesTemplates, "csgrenades", "decoy", 50);
+            } else {
+                addItem(explosivesTemplates, "fpsmatch", "grenade", 300);
+                addItem(explosivesTemplates, "fpsmatch", "flash_bomb", 200);
+                addItem(explosivesTemplates, "fpsmatch", "smoke_shell", 300);
+                addItem(explosivesTemplates, "fpsmatch", "t_incendiary_grenade", 400);
+                addItem(explosivesTemplates, "fpsmatch", "ct_incendiary_grenade", 500);
+            }
         }
         return explosivesTemplates;
     }
@@ -248,18 +278,16 @@ public enum ItemType implements INamedType {
     private static synchronized List<ShopSlot> getSupportTemplates() {
         if (supportTemplates == null) {
             supportTemplates = new ArrayList<>();
-            addSWItem(supportTemplates, "medical_kit", 1, 350);
-            addSWItem(supportTemplates, "drone", 1, 600);
-            addSWItem(supportTemplates, "artillery_indicator", 1, 1800);
-            addSWItem(supportTemplates, "monitor", 1, 2500);
-            addSWItem(supportTemplates, "mortar_deployer", 1, 3200);
-            addSWItem(supportTemplates, "mortar_shell_smoke", 1, 150);
-            addSWItem(supportTemplates, "mortar_shell", 1, 400);
-            addSWItem(supportTemplates, "mortar_shell_wp", 1, 600);
-            // Лом: распаковка ящика с техникой (поставленный контейнер открывается ломом)
-            addSWItem(supportTemplates, "crowbar", 1, 1000);
-            addSWItem(supportTemplates, "repair_tool", 1, 1500);
-            addSWItem(supportTemplates, "creative_charging_station", 1, 3500);
+            addItem(supportTemplates, "blockoffensive", "bomb_disposal_kit", 400);
+            if (swLoaded()) {
+                addSWItem(supportTemplates, "mortar_deployer", 1, 2500);
+                addSWItem(supportTemplates, "mortar_shell", 1, 200);
+                addSWItem(supportTemplates, "mortar_shell_smoke", 1, 150);
+                addSWItem(supportTemplates, "drone", 1, 1800);
+                addSWItem(supportTemplates, "monitor", 1, 350);
+                addSWItem(supportTemplates, "artillery_indicator", 1, 600);
+                addSWItem(supportTemplates, "firing_parameters", 1, 200);
+            }
         }
         return supportTemplates;
     }
@@ -267,18 +295,19 @@ public enum ItemType implements INamedType {
     private static synchronized List<ShopSlot> getVehicleTemplates() {
         if (vehicleTemplates == null) {
             vehicleTemplates = new ArrayList<>();
-            // Техника продаётся ящиком-контейнером (superbwarfare:container + NBT EntityType).
-            // Распаковка: поставить ящик, ударить ломом.
-            addVehicle(vehicleTemplates, "sodayo_pick_up_hmg", 1500);
-            addVehicle(vehicleTemplates, "tow", 2200);
-            addVehicle(vehicleTemplates, "lav_150", 3500);
-            addVehicle(vehicleTemplates, "lav_25", 4800);
-            addVehicle(vehicleTemplates, "bmp_2", 5500);
-            addVehicle(vehicleTemplates, "bradley", 6000);
-            addVehicle(vehicleTemplates, "plz_05", 6500);
-            addVehicle(vehicleTemplates, "t_90a", 8000);
-            addVehicle(vehicleTemplates, "ztz_99a", 8500);
-            addVehicle(vehicleTemplates, "m_1a_2", 9500);
+            if (swLoaded()) {
+                addSWItem(vehicleTemplates, "crowbar", 1, 50);
+                addVehicle(vehicleTemplates, "sodayo_pick_up_hmg", 1500);
+                addVehicle(vehicleTemplates, "tow", 2200);
+                addVehicle(vehicleTemplates, "lav_150", 3500);
+                addVehicle(vehicleTemplates, "lav_25", 4800);
+                addVehicle(vehicleTemplates, "bmp_2", 5500);
+                addVehicle(vehicleTemplates, "bradley", 6000);
+                addVehicle(vehicleTemplates, "plz_05", 6500);
+                addVehicle(vehicleTemplates, "t_90a", 8000);
+                addVehicle(vehicleTemplates, "ztz_99a", 8500);
+                addVehicle(vehicleTemplates, "m_1a_2", 9500);
+            }
         }
         return vehicleTemplates;
     }
@@ -286,15 +315,16 @@ public enum ItemType implements INamedType {
     private static synchronized List<ShopSlot> getVehicleAmmoTemplates() {
         if (vehicleAmmoTemplates == null) {
             vehicleAmmoTemplates = new ArrayList<>();
-            // Расходники (потребляются при использовании, не бесконечные)
-            addSWItem(vehicleAmmoTemplates, "heavy_ammo", 64, 200);
-            addSWItem(vehicleAmmoTemplates, "rifle_ammo", 64, 250);
-            addSWItem(vehicleAmmoTemplates, "small_shell_gs", 20, 250);
-            addSWItem(vehicleAmmoTemplates, "small_shell_he", 30, 350);
-            addSWItem(vehicleAmmoTemplates, "small_shell_ap", 30, 400);
-            addSWItem(vehicleAmmoTemplates, "large_shell_gs", 6, 350);
-            addSWItem(vehicleAmmoTemplates, "large_shell_he", 6, 500);
-            addSWItem(vehicleAmmoTemplates, "large_shell_ap", 6, 600);
+            if (swLoaded()) {
+                addSWItem(vehicleAmmoTemplates, "heavy_ammo", 64, 200);
+                addSWItem(vehicleAmmoTemplates, "rifle_ammo", 64, 250);
+                addSWItem(vehicleAmmoTemplates, "small_shell_gs", 20, 250);
+                addSWItem(vehicleAmmoTemplates, "small_shell_he", 30, 350);
+                addSWItem(vehicleAmmoTemplates, "small_shell_ap", 30, 400);
+                addSWItem(vehicleAmmoTemplates, "large_shell_gs", 6, 350);
+                addSWItem(vehicleAmmoTemplates, "large_shell_he", 6, 500);
+                addSWItem(vehicleAmmoTemplates, "large_shell_ap", 6, 600);
+            }
         }
         return vehicleAmmoTemplates;
     }
@@ -303,21 +333,21 @@ public enum ItemType implements INamedType {
         if (attachmentTemplates == null) {
             attachmentTemplates = new ArrayList<>();
             if (ModList.get().isLoaded("tacz")) {
-                // Коллиматоры
+                // РљРѕР»Р»РёРјР°С‚РѕСЂС‹
                 addAttachment(attachmentTemplates, "sight_t1", 300);
                 addAttachment(attachmentTemplates, "sight_rmr_dot", 400);
                 addAttachment(attachmentTemplates, "sight_t2", 500);
                 addAttachment(attachmentTemplates, "sight_552", 550);
                 addAttachment(attachmentTemplates, "sight_uh1", 650);
                 addAttachment(attachmentTemplates, "sight_exp3", 750);
-                // Оптика
+                // РћРїС‚РёРєР°
                 addAttachment(attachmentTemplates, "scope_retro_2x", 850);
                 addAttachment(attachmentTemplates, "scope_acog_ta31", 900);
                 addAttachment(attachmentTemplates, "scope_elcan_4x", 1000);
                 addAttachment(attachmentTemplates, "scope_lpvo_1_6", 1100);
                 addAttachment(attachmentTemplates, "scope_hamr", 1300);
                 addAttachment(attachmentTemplates, "scope_vudu", 1500);
-                // Обвес
+                // РћР±РІРµСЃ
                 addAttachment(attachmentTemplates, "stock_moe", 400);
                 addAttachment(attachmentTemplates, "stock_tactical_ar", 450);
                 addAttachment(attachmentTemplates, "grip_vertical_ranger", 450);
@@ -379,10 +409,39 @@ public enum ItemType implements INamedType {
         }
     }
 
-    /**
-     * Предмет Superb Warfare по строковому ID. Без зависимости в сборке:
-     * резолв через реестр в рантайме, всё под guard ModList.
-     */
+    private static void addItem(List<ShopSlot> list, String modId, String itemId, int cost) {
+        try {
+            net.minecraft.world.item.Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(modId, itemId));
+            if (item == null || item == Items.AIR) {
+                FPSMatch.LOGGER.warn("Missing shop item {}:{}, skipping from template", modId, itemId);
+                return;
+            }
+            list.add(new ShopSlot(new ItemStack(item), cost));
+        } catch (Throwable t) {
+            FPSMatch.LOGGER.warn("Failed to create shop item {}:{}: {}", modId, itemId, t.toString());
+        }
+    }
+
+    private static void addArmorItem(List<ShopSlot> list, String itemId, int cost, String listenerName) {
+        try {
+            net.minecraft.world.item.Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation("fpsmatch", itemId));
+            if (item == null || item == Items.AIR) {
+                FPSMatch.LOGGER.warn("Missing armor item fpsmatch:{}, skipping from template", itemId);
+                return;
+            }
+            ShopSlot slot = new ShopSlot(new ItemStack(item), cost);
+            ListenerModule lm = FPSMCore.getInstance().getListenerModuleManager().getListenerModule(listenerName);
+            if (lm != null) {
+                slot.addListener(lm);
+            } else {
+                FPSMatch.LOGGER.warn("Listener module '{}' not found for armor item {}", listenerName, itemId);
+            }
+            list.add(slot);
+        } catch (Throwable t) {
+            FPSMatch.LOGGER.warn("Failed to create armor item fpsmatch:{}: {}", itemId, t.toString());
+        }
+    }
+
     private static void addSWItem(List<ShopSlot> list, String itemId, int count, int cost) {
         if (!swLoaded()) {
             list.add(new ShopSlot(ItemStack.EMPTY, cost));
@@ -400,9 +459,42 @@ public enum ItemType implements INamedType {
         }
     }
 
+    private static void addC4Item(List<ShopSlot> list, boolean remote, int cost) {
+        if (!swLoaded()) {
+            list.add(new ShopSlot(ItemStack.EMPTY, cost));
+            return;
+        }
+        try {
+            net.minecraft.world.item.Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation("superbwarfare", "c4_bomb"));
+            if (item == null || item == Items.AIR) {
+                throw new IllegalStateException("missing item superbwarfare:c4_bomb");
+            }
+            ItemStack stack = new ItemStack(item);
+            if (remote) {
+                stack.getOrCreateTag().putBoolean("Control", true);
+            }
+            list.add(new ShopSlot(stack, cost));
+        } catch (Throwable t) {
+            com.phasetranscrystal.fpsmatch.FPSMatch.LOGGER.warn("Failed to create SuperbWarfare C4 item (remote={}): {}", remote, t.toString());
+            list.add(new ShopSlot(ItemStack.EMPTY, cost));
+        }
+    }
+
+    private static void addNonSWGrenades(List<ShopSlot> list) {
+        if (ModList.get().isLoaded("csgrenades")) {
+            addItem(list, "csgrenades", "flashbang", 200);
+            addItem(list, "csgrenades", "molotov", 400);
+            addItem(list, "csgrenades", "incendiary", 500);
+        } else {
+            addItem(list, "fpsmatch", "flash_bomb", 200);
+            addItem(list, "fpsmatch", "t_incendiary_grenade", 400);
+            addItem(list, "fpsmatch", "ct_incendiary_grenade", 500);
+        }
+    }
+
     /**
-     * Техника: ящик-контейнер superbwarfare:container с NBT EntityType.
-     * Тот же формат, что кладёт ContainerBlockItem.createInstance(entityType):
+     * РўРµС…РЅРёРєР°: СЏС‰РёРє-РєРѕРЅС‚РµР№РЅРµСЂ superbwarfare:container СЃ NBT EntityType.
+     * РўРѕС‚ Р¶Рµ С„РѕСЂРјР°С‚, С‡С‚Рѕ РєР»Р°РґС‘С‚ ContainerBlockItem.createInstance(entityType):
      * BlockEntityTag { EntityType: "superbwarfare:<id>" }.
      */
     private static void addVehicle(List<ShopSlot> list, String entityId, int cost) {

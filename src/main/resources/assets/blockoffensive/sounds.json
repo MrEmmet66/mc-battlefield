@@ -47,7 +47,7 @@
   "flash": {
     "subtitle": "sounds.blockoffensive.effect.flash",
     "sounds": [
-      "blockoffensive:flash"
+      "fpsmatch:flash"
     ]
   },
   "boom": {

@@ -106,6 +106,7 @@ public class CSDeathMatchMap extends CSMap {
     private CSDeathMatchMap(String mapName, AreaData areaData, ResourceLocation serverLevel, Map<String, JsonElement> capabilities, Map<String, CapabilityMap.Wrapper> teams) {
         this(FPSMCore.getInstance().getServer().getLevel(ResourceKey.create(Registries.DIMENSION,serverLevel)), mapName, areaData);
         this.getCapabilityMap().write(capabilities);
+        com.ptcrys.blockoffensive.data.persistence.CSShopSuperbWarfareFixer.normalizeShopDataSlotCounts(teams);
         this.getMapTeams().writeData(teams);
         // 恢复nextTeamIndex，避免与已有的动态队伍编号冲突
         restoreNextTeamIndex();

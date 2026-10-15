@@ -36,6 +36,7 @@ void main() {
 
     float luma = dot(c, vec3(0.2126, 0.7152, 0.0722));
     vec3 gray = vec3(luma);
+    gray = mix(gray, gray * vec3(0.69, 0.55, 1.0) * 1.1, 0.15);
 
     vec3 dst = mix(gray, c, clamp(Saturation, 0.0, 1.0));
     dst = acesTonemap(dst);

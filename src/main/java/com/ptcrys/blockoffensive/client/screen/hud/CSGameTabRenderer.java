@@ -1,5 +1,6 @@
 package com.ptcrys.blockoffensive.client.screen.hud;
 
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.ptcrys.blockoffensive.util.BOUtil;
 import com.phasetranscrystal.fpsmatch.common.client.FPSMClient;
 import com.phasetranscrystal.fpsmatch.common.client.tab.TabRenderer;
@@ -92,7 +93,8 @@ public class CSGameTabRenderer implements TabRenderer {
         int bgY = (minecraft.getWindow().getGuiScaledHeight() - bgHeight) / 2;
 
         // 渲染背景
-        guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, 0x80000000);
+        guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, BOTheme.argb(0x80, BOTheme.PANEL_RGB));
+        drawPanelFrame(guiGraphics, bgX, bgY, bgWidth, bgHeight);
 
         // 表头位置
         int headerY = bgY + bgPadding;
@@ -102,7 +104,7 @@ public class CSGameTabRenderer implements TabRenderer {
 
         // 添加中间分割线（CT和T队伍之间）
         int dividerY = ctStartY + ctContentHeight + teamGap / 2;
-        guiGraphics.fill(bgX, dividerY, bgX + bgWidth, dividerY + 1, 0x40FFFFFF);
+        guiGraphics.fill(bgX, dividerY, bgX + bgWidth, dividerY + 1, BOTheme.argb(0x40, BOTheme.BORDER_RGB));
 
         // 计算T玩家起始Y坐标（分割线下方）
         int tStartY = ctStartY + ctContentHeight + teamGap;
@@ -123,35 +125,38 @@ public class CSGameTabRenderer implements TabRenderer {
         // 金钱
         Component moneyText = Component.translatable("blockoffensive.tab.header.money").withStyle(ChatFormatting.BOLD);
         guiGraphics.drawString(minecraft.font, moneyText,
-                currentHeaderX + (COL_MONEY - minecraft.font.width(moneyText)) / 2, headerY, 0xFFFFFFFF);
+                currentHeaderX + (COL_MONEY - minecraft.font.width(moneyText)) / 2, headerY, BOTheme.TEXT_PRIMARY);
         currentHeaderX += COL_MONEY;
 
         // K/D/A
         Component killsText = Component.translatable("blockoffensive.tab.header.kills").withStyle(ChatFormatting.BOLD);
         guiGraphics.drawString(minecraft.font, killsText,
-                currentHeaderX + (COL_KILL - minecraft.font.width(killsText)) / 2, headerY, 0xFFFFFFFF);
+                currentHeaderX + (COL_KILL - minecraft.font.width(killsText)) / 2, headerY, BOTheme.TEXT_PRIMARY);
         currentHeaderX += COL_KILL;
 
         Component deathsText = Component.translatable("blockoffensive.tab.header.deaths").withStyle(ChatFormatting.BOLD);
         guiGraphics.drawString(minecraft.font, deathsText,
-                currentHeaderX + (COL_DEATH - minecraft.font.width(deathsText)) / 2, headerY, 0xFFFFFFFF);
+                currentHeaderX + (COL_DEATH - minecraft.font.width(deathsText)) / 2, headerY, BOTheme.TEXT_PRIMARY);
         currentHeaderX += COL_DEATH;
 
         Component assistsText = Component.translatable("blockoffensive.tab.header.assists").withStyle(ChatFormatting.BOLD);
         guiGraphics.drawString(minecraft.font, assistsText,
-                currentHeaderX + (COL_ASSIST - minecraft.font.width(assistsText)) / 2, headerY, 0xFFFFFFFF);
+                currentHeaderX + (COL_ASSIST - minecraft.font.width(assistsText)) / 2, headerY, BOTheme.TEXT_PRIMARY);
         currentHeaderX += COL_ASSIST;
 
         // 爆头率
         Component headshotText = Component.translatable("blockoffensive.tab.header.headshot").withStyle(ChatFormatting.BOLD);
         guiGraphics.drawString(minecraft.font, headshotText,
-                currentHeaderX + (COL_HEADSHOT - minecraft.font.width(headshotText)) / 2, headerY, 0xFFFFFFFF);
+                currentHeaderX + (COL_HEADSHOT - minecraft.font.width(headshotText)) / 2, headerY, BOTheme.TEXT_PRIMARY);
         currentHeaderX += COL_HEADSHOT;
 
         // 伤害（直接跟在爆头率后面）
         Component damageText = Component.translatable("blockoffensive.tab.header.damage").withStyle(ChatFormatting.BOLD);
         guiGraphics.drawString(minecraft.font, damageText,
-                currentHeaderX + (COL_DAMAGE - minecraft.font.width(damageText)) / 2, headerY, 0xFFFFFFFF);
+                currentHeaderX + (COL_DAMAGE - minecraft.font.width(damageText)) / 2, headerY, BOTheme.TEXT_PRIMARY);
+
+        // 表头下分隔线
+        guiGraphics.fill(bgX, headerY + headerHeight + 1, bgX + bgWidth, headerY + headerHeight + 2, BOTheme.argb(0x66, BOTheme.BORDER_RGB));
 
         // 渲染CT玩家（从顶部开始）
         renderRows(guiGraphics, ctPlayers, ctStartY, playerAreaWidth, playerRowHeight, playerGap, bgX + bgPadding, BOUtil.CT_COLOR, playerDataById);
@@ -182,7 +187,7 @@ public class CSGameTabRenderer implements TabRenderer {
         boolean isLocalPlayer = player.getProfile().getId().equals(minecraft.player.getUUID());
 
         // 背景 - 如果是本地玩家，使用对应队伍颜色的背景
-        int bgColor = isLocalPlayer ? (textColor & 0xFFFFFF) | 0x40000000 : 0x40000000;
+        int bgColor = isLocalPlayer ? BOTheme.argb(0x40, BOTheme.ACCENT_RGB) : BOTheme.argb(0x40, BOTheme.PANEL_RGB);
         guiGraphics.fill(x, y, x + width, y + height, bgColor);
 
         int textY = y + (height - 8) / 2;
@@ -191,7 +196,7 @@ public class CSGameTabRenderer implements TabRenderer {
         // Ping值
         String pingText = String.valueOf(player.getLatency());
         guiGraphics.drawString(minecraft.font, pingText,
-                currentX + (COL_PING - minecraft.font.width(pingText)) / 2, textY, RenderUtil.color(25,180,60));
+                currentX + (COL_PING - minecraft.font.width(pingText)) / 2, textY, BOTheme.STATE_OK);
         currentX += COL_PING;
 
         // 头像
@@ -204,7 +209,7 @@ public class CSGameTabRenderer implements TabRenderer {
         // 金钱（与表头对齐，默认从表头高度下方开始）
         int moneyX = x + ROW_NAME_AREA;
         // 始终显示高亮背景
-        guiGraphics.fill(moneyX, y, moneyX + COL_MONEY, y + height, 0x20FFFFFF);
+        guiGraphics.fill(moneyX, y, moneyX + COL_MONEY, y + height, BOTheme.argb(0x40, BOTheme.BORDER_RGB));
         // 只在同队时显示金钱数值
         if (isSameTeam) {
             String money = "$" + FPSMClient.getGlobalData().getPlayerMoney(player.getProfile().getId());
@@ -219,7 +224,7 @@ public class CSGameTabRenderer implements TabRenderer {
                 kdaX + (COL_KILL - minecraft.font.width(kills)) / 2, textY, textColor);
 
         int deathsX = kdaX + COL_KILL;
-        guiGraphics.fill(deathsX, y, deathsX + COL_DEATH, y + height, 0x20FFFFFF);
+        guiGraphics.fill(deathsX, y, deathsX + COL_DEATH, y + height, BOTheme.argb(0x40, BOTheme.BORDER_RGB));
         Component deaths = Component.literal(String.valueOf(tabData.getDeaths())).withStyle(ChatFormatting.BOLD);
         guiGraphics.drawString(minecraft.font, deaths,
                 deathsX + (COL_DEATH - minecraft.font.width(deaths)) / 2, textY, textColor);
@@ -231,7 +236,7 @@ public class CSGameTabRenderer implements TabRenderer {
 
         // 爆头率（与表头对齐）
         int headshotX = assistsX + COL_ASSIST;
-        guiGraphics.fill(headshotX, y, headshotX + COL_HEADSHOT, y + height, 0x20FFFFFF);
+        guiGraphics.fill(headshotX, y, headshotX + COL_HEADSHOT, y + height, BOTheme.argb(0x40, BOTheme.BORDER_RGB));
         float headShotRate = tabData.getHeadshotRate();
         String headshotStr = ((int) (headShotRate * 100)) + "%";
         Component headshotPercentage = Component.literal(headshotStr).withStyle(ChatFormatting.BOLD);
@@ -240,14 +245,14 @@ public class CSGameTabRenderer implements TabRenderer {
 
         // 伤害（与表头对齐）
         int damageX = x + width - COL_DAMAGE;
-        guiGraphics.fill(damageX, y, damageX + COL_DAMAGE, y + height, 0x40FFFFFF);
+        guiGraphics.fill(damageX, y, damageX + COL_DAMAGE, y + height, BOTheme.argb(0x40, BOTheme.BORDER_RGB));
         Component damage = Component.literal(String.valueOf(Math.round(tabData.getDamage()))).withStyle(ChatFormatting.BOLD);
         guiGraphics.drawString(minecraft.font, damage,
                 damageX + (COL_DAMAGE - minecraft.font.width(damage)) / 2, textY, textColor);
 
         if(!tabData.isLiving()){
             //渲染一层半透明灰色
-            guiGraphics.fill(x, y, x + width, y + height, 0x40000000);
+            guiGraphics.fill(x, y, x + width, y + height, BOTheme.argb(0x99, BOTheme.PANEL_RGB));
         }
     }
 
@@ -268,5 +273,13 @@ public class CSGameTabRenderer implements TabRenderer {
 
     protected Component getNameForDisplay(PlayerInfo info) {
         return info.getTabListDisplayName() != null ? info.getTabListDisplayName() : Component.literal(info.getProfile().getName());
+    }
+
+    protected void drawPanelFrame(GuiGraphics guiGraphics, int x, int y, int width, int height) {
+        int border = BOTheme.argb(0xCC, BOTheme.BORDER_RGB);
+        guiGraphics.fill(x, y, x + width, y + 1, border);
+        guiGraphics.fill(x, y + height - 1, x + width, y + height, border);
+        guiGraphics.fill(x, y, x + 1, y + height, border);
+        guiGraphics.fill(x + width - 1, y, x + width, y + height, border);
     }
 }

@@ -204,6 +204,7 @@ public class CSGameMap extends CSMap{
     private CSGameMap(String mapName,AreaData areaData,ResourceLocation serverLevel, Map<String, JsonElement> capabilities, Map<String, CapabilityMap.Wrapper> teams) {
         this(FPSMCore.getInstance().getServer().getLevel(ResourceKey.create(Registries.DIMENSION,serverLevel)), mapName, areaData);
         this.getCapabilityMap().write(capabilities);
+        com.ptcrys.blockoffensive.data.persistence.CSShopSuperbWarfareFixer.normalizeShopDataSlotCounts(teams);
         this.getMapTeams().writeData(teams);
     }
 

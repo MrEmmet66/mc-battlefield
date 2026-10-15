@@ -1,6 +1,7 @@
 package com.ptcrys.blockoffensive.client.screen.hud;
 
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.ptcrys.blockoffensive.client.spec.SpecHudAPI;
 import com.phasetranscrystal.fpsmatch.FPSMatch;
 import com.phasetranscrystal.fpsmatch.common.client.FPSMClient;
@@ -87,16 +88,16 @@ public final class CSSpectatorHudOverlay {
     private static final int TEAM_STRIPE_WIDTH = 3;
 
     // 颜色常量
-    private static final int PANEL_BACKGROUND_COLOR = 0xCC141416;
-    private static final int PANEL_TOP_HIGHLIGHT = 0x1FFFFFFF;
-    private static final int PANEL_STROKE = 0x40FFFFFF;
-    private static final int PANEL_STROKE_LIGHT = 0x28FFFFFF;
-    private static final int HP_BAR_BACKGROUND = 0x22000000;
-    private static final int TEXT_COLOR_WHITE = 0xFFFFFFFF;
-    private static final int TEXT_COLOR_ITEM = 0xFF11AA66;
-    private static final int TEXT_COLOR_ITEM_EN = 0xFF6E6E6E;
-    private static final int TEXT_COLOR_HEADSHOT = 0xFFFF9900;
-    private static final int TEXT_COLOR_KILLS = 0xFF222222;
+    private static final int PANEL_BACKGROUND_COLOR = BOTheme.argb(0xCC, BOTheme.PANEL_RGB);
+    private static final int PANEL_TOP_HIGHLIGHT = BOTheme.argb(0x1F, BOTheme.BORDER_RGB);
+    private static final int PANEL_STROKE = BOTheme.argb(0x40, BOTheme.BORDER_RGB);
+    private static final int PANEL_STROKE_LIGHT = BOTheme.argb(0x28, BOTheme.BORDER_RGB);
+    private static final int HP_BAR_BACKGROUND = BOTheme.BORDER;
+    private static final int TEXT_COLOR_WHITE = BOTheme.TEXT_PRIMARY;
+    private static final int TEXT_COLOR_ITEM = BOTheme.STATE_OK;
+    private static final int TEXT_COLOR_ITEM_EN = BOTheme.TEXT_SECONDARY;
+    private static final int TEXT_COLOR_HEADSHOT = BOTheme.STATE_WARN;
+    private static final int TEXT_COLOR_KILLS = BOTheme.TEXT_PRIMARY;
 
     // 团队颜色常量
     private static final int TEAM_COLOR_T = 0xFFFFA500;
@@ -559,12 +560,12 @@ public final class CSSpectatorHudOverlay {
         int leftColor, rightColor;
         if (healthPercent < 0.5f) {
             float t = healthPercent / 0.5f;
-            leftColor = lerpColor(0xFFFF4D4D, 0xFFFFAA33, t);
-            rightColor = lerpColor(0xFFCC3A3A, 0xFFFF8C1A, t);
+            leftColor = lerpColor(BOTheme.STATE_ERROR, BOTheme.STATE_WARN, t);
+            rightColor = lerpColor(BOTheme.STATE_ERROR, BOTheme.STATE_WARN, t);
         } else {
             float t = (healthPercent - 0.5f) / 0.5f;
-            leftColor = lerpColor(0xFFFFAA33, 0xFF36C06E, t);
-            rightColor = lerpColor(0xFFFF8C1A, 0xFF2DA45C, t);
+            leftColor = lerpColor(BOTheme.STATE_WARN, BOTheme.STATE_OK, t);
+            rightColor = lerpColor(BOTheme.STATE_WARN, BOTheme.STATE_OK, t);
         }
 
         // 应用透明度并绘制

@@ -328,5 +328,16 @@
   "blockoffensive.shop.title.explosives": "Explosives",
   "blockoffensive.shop.title.support": "Support",
   "blockoffensive.shop.title.vehicle_ammo": "Vehicle Ammo",
-  "blockoffensive.shop.team.purchase": "%1$s bought %2$s ($%3$s)"
+  "blockoffensive.shop.team.purchase": "%1$s bought %2$s ($%3$s)",
+  "blockoffensive.shop.header.title": "Buy Menu",
+  "blockoffensive.shop.header.team.ct": "CT \u00b7 COUNTER-TERRORISTS",
+  "blockoffensive.shop.header.team.t": "T \u00b7 TERRORISTS",
+  "blockoffensive.shop.header.next_round_min": "Min next: $%1$s",
+  "blockoffensive.shop.hint.category": "1\u2013N  category",
+  "blockoffensive.shop.hint.buy": "LMB  select \u00b7 Enter  buy",
+  "blockoffensive.shop.hint.close": "B  close",
+  "blockoffensive.shop.details.owned": "Owned: %1$s",
+  "blockoffensive.shop.action.buy": "BUY \u2014 $%1$s",
+  "blockoffensive.shop.action.return": "RETURN",
+  "blockoffensive.shop.badge.locked": "LOCKED"
 }

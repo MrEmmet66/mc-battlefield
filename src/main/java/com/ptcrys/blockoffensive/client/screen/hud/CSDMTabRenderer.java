@@ -1,5 +1,6 @@
 package com.ptcrys.blockoffensive.client.screen.hud;
 
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.phasetranscrystal.fpsmatch.common.client.FPSMClient;
 import com.phasetranscrystal.fpsmatch.core.data.PlayerData;
 import com.phasetranscrystal.fpsmatch.util.RenderUtil;
@@ -59,13 +60,15 @@ public class CSDMTabRenderer extends CSGameTabRenderer {
         int bgHeight = totalContentHeight + bgPadding * 2;
         int bgX = (windowWidth - bgWidth) / 2;
         int bgY = (minecraft.getWindow().getGuiScaledHeight() - bgHeight) / 2;
-        guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, 0x80000000);
+        guiGraphics.fill(bgX, bgY, bgX + bgWidth, bgY + bgHeight, BOTheme.argb(0x80, BOTheme.PANEL_RGB));
+        drawPanelFrame(guiGraphics, bgX, bgY, bgWidth, bgHeight);
 
         int headerY = bgY + bgPadding;
         int playerStartY = headerY + headerHeight + 2;
 
         // 渲染表头
         renderHeader(guiGraphics, bgX + bgPadding, headerY);
+        guiGraphics.fill(bgX, headerY + headerHeight + 1, bgX + bgWidth, headerY + headerHeight + 2, BOTheme.argb(0x66, BOTheme.BORDER_RGB));
 
         // 渲染所有玩家
         int currentY = playerStartY;
@@ -107,7 +110,7 @@ public class CSDMTabRenderer extends CSGameTabRenderer {
     /** 居中绘制表头标签并返回下一列 x。 */
     private int drawHeaderLabel(GuiGraphics guiGraphics, int x, int y, String translationKey, int columnWidth) {
         Component text = Component.translatable(translationKey);
-        guiGraphics.drawString(minecraft.font, text, x + (columnWidth - minecraft.font.width(text)) / 2, y, 0xFFFFFFFF);
+        guiGraphics.drawString(minecraft.font, text, x + (columnWidth - minecraft.font.width(text)) / 2, y, BOTheme.TEXT_PRIMARY);
         return x + columnWidth;
     }
 
@@ -120,7 +123,7 @@ public class CSDMTabRenderer extends CSGameTabRenderer {
         boolean isLocalPlayer = player.getProfile().getId().equals(minecraft.player.getUUID());
 
         // 背景 - 本地玩家高亮
-        guiGraphics.fill(x, y, x + width, y + height, isLocalPlayer ? 0x40FFFFFF : 0x40000000);
+        guiGraphics.fill(x, y, x + width, y + height, isLocalPlayer ? BOTheme.argb(0x40, BOTheme.ACCENT_RGB) : BOTheme.argb(0x40, BOTheme.PANEL_RGB));
 
         int textY = y + (height - 8) / 2;
         int currentX = x;
@@ -128,7 +131,7 @@ public class CSDMTabRenderer extends CSGameTabRenderer {
         // Ping值
         String pingText = String.valueOf(player.getLatency());
         guiGraphics.drawString(minecraft.font, pingText,
-                currentX + (COL_PING - minecraft.font.width(pingText)) / 2, textY, RenderUtil.color(25, 180, 60));
+                currentX + (COL_PING - minecraft.font.width(pingText)) / 2, textY, BOTheme.STATE_OK);
         currentX += COL_PING;
 
         // 头像
@@ -136,7 +139,7 @@ public class CSDMTabRenderer extends CSGameTabRenderer {
         currentX += AVATAR_SIZE + COL_PADDING;
 
         // 玩家名（左对齐）
-        guiGraphics.drawString(minecraft.font, getNameForDisplay(player), currentX, textY, 0xFFFFFFFF);
+        guiGraphics.drawString(minecraft.font, getNameForDisplay(player), currentX, textY, BOTheme.TEXT_PRIMARY);
 
         // 数据列起点（表头对齐）
         int dataX = x + ROW_NAME_AREA;
@@ -156,13 +159,13 @@ public class CSDMTabRenderer extends CSGameTabRenderer {
 
         if (!tabData.isLiving()) {
             // 渲染一层半透明灰色
-            guiGraphics.fill(x, y, x + width, y + height, 0x40000000);
+            guiGraphics.fill(x, y, x + width, y + height, BOTheme.argb(0x99, BOTheme.PANEL_RGB));
         }
     }
 
     private int drawCenteredCell(GuiGraphics guiGraphics, String text, int x, int columnWidth, int textY) {
         guiGraphics.drawString(minecraft.font, text,
-                x + (columnWidth - minecraft.font.width(text)) / 2, textY, 0xFFFFFFFF);
+                x + (columnWidth - minecraft.font.width(text)) / 2, textY, BOTheme.TEXT_PRIMARY);
         return x + columnWidth;
     }
 

@@ -2,6 +2,7 @@ package com.ptcrys.blockoffensive.client.screen.hud;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.ptcrys.blockoffensive.client.data.CSClientData;
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.phasetranscrystal.fpsmatch.common.client.FPSMClient;
 import com.phasetranscrystal.fpsmatch.core.data.PlayerData;
 import com.ptcrys.blockoffensive.minimap.CSHudSafeAreaLayouts;
@@ -21,8 +22,8 @@ import java.util.Comparator;
 import static com.phasetranscrystal.fpsmatch.util.RenderUtil.color;
 
 public class CSDMOverlay {
-    public static int textRoundTimeColor = color(255, 255, 255);
-    public static int textFontColor = color(138, 118, 110);
+    public static int textRoundTimeColor = BOTheme.TEXT_PRIMARY;
+    public static int textFontColor = BOTheme.TEXT_SECONDARY;
 
     private final Minecraft minecraft = Minecraft.getInstance();
 
@@ -153,9 +154,9 @@ public class CSDMOverlay {
         int remainingSecondsPart = totalSeconds % 60;
 
         if (remainingMinutes == 0 && remainingSecondsPart <= 10) {
-            textRoundTimeColor = color(240, 40, 40);
+            textRoundTimeColor = BOTheme.STATE_ERROR;
         } else {
-            textRoundTimeColor = color(255, 255, 255);
+            textRoundTimeColor = BOTheme.TEXT_PRIMARY;
         }
 
         String minutesPart = String.format("%02d", remainingMinutes);

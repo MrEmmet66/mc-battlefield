@@ -1,6 +1,7 @@
 package com.ptcrys.blockoffensive.client.screen.hud;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.ptcrys.blockoffensive.BOConfig;
 import com.ptcrys.blockoffensive.BlockOffensive;
 import com.ptcrys.blockoffensive.compat.BOImpl;
@@ -196,15 +197,15 @@ public class CSDeathMessageHud{
 
         int width = row.width();
         int height = 16;
-        int bgColor = 0x80000000;
+        int bgColor = BOTheme.argb(0x80, BOTheme.PANEL_RGB);
 
         guiGraphics.fill(x, y, x + width, y + height, bgColor);
 
         if (isLocalPlayer) {
-            guiGraphics.fill(x, y, x + width, y + 1, 0xFFFF0000);
-            guiGraphics.fill(x, y + height - 1, x + width, y + height, 0xFFFF0000);
-            guiGraphics.fill(x, y, x + 1, y + height, 0xFFFF0000);
-            guiGraphics.fill(x + width - 1, y, x + width, y + height, 0xFFFF0000);
+            guiGraphics.fill(x, y, x + width, y + 1, BOTheme.ACCENT);
+            guiGraphics.fill(x, y + height - 1, x + width, y + height, BOTheme.ACCENT);
+            guiGraphics.fill(x, y, x + 1, y + height, BOTheme.ACCENT);
+            guiGraphics.fill(x + width - 1, y, x + width, y + height, BOTheme.ACCENT);
         }
 
         boolean isSuicide = row.suicide();

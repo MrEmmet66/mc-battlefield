@@ -1,6 +1,7 @@
 package com.ptcrys.blockoffensive.client.screen.hud;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.ptcrys.blockoffensive.data.MvpReason;
 import com.ptcrys.blockoffensive.event.CSHUDRenderEvent;
 import com.ptcrys.blockoffensive.sound.BOSoundRegister;
@@ -173,10 +174,10 @@ public class CSMvpHud {
         int y = (int) (190 * ((float) screenHeight / BASE_HEIGHT));
 
         // 背景颜色过渡
-        int bgColor = 0xFFFFFFFF;
+        int bgColor = BOTheme.PANEL;
         if (colorTransitionStartTime != -1) {
             float colorProgress = Math.min((currentTime - colorTransitionStartTime) / (float) COLOR_TRANSITION_DURATION, 1f);
-            bgColor = lerpColor(0xFFFFFFFF, 0xAA000000, colorProgress);
+            bgColor = lerpColor(BOTheme.PANEL, BOTheme.argb(0xAA, BOTheme.PANEL_RGB), colorProgress);
         }
 
         // 绘制背景面板
@@ -200,10 +201,10 @@ public class CSMvpHud {
             int textY = y + (scaledHeight - textTotalHeight) / 2 + verticalOffset;
 
             // 文本颜色（含透明度过渡）
-            int textColor = 0x00FFFFFF;
+            int textColor = BOTheme.argb(0x00, BOTheme.TEXT_PRIMARY_RGB);
             if (colorTransitionStartTime != -1) {
                 float alpha = Math.min((currentTime - colorTransitionStartTime) / 250f, 1f);
-                textColor = (int) (alpha * 255) << 24 | 0xFFFFFF;
+                textColor = (int) (alpha * 255) << 24 | BOTheme.TEXT_PRIMARY_RGB;
             }
 
             // 渲染左侧箭头
@@ -246,13 +247,13 @@ public class CSMvpHud {
         int x = (screenWidth - animatedWidth) / 2;
 
         // 背景颜色过渡
-        int bgColor = 0xFFFFFFFF;
+        int bgColor = BOTheme.PANEL;
         if (progress >= 1f) {
             if (mvpColorTransitionStartTime == -1) {
                 mvpColorTransitionStartTime = currentTime;
             }
             float colorProgress = Math.min((currentTime - mvpColorTransitionStartTime) / (float) COLOR_TRANSITION_DURATION, 1f);
-            bgColor = lerpColor(0xFFFFFFFF, 0xAA000000, colorProgress);
+            bgColor = lerpColor(BOTheme.PANEL, BOTheme.argb(0xAA, BOTheme.PANEL_RGB), colorProgress);
         }
 
         // 绘制面板背景
@@ -282,19 +283,19 @@ public class CSMvpHud {
         renderScaledText(guiGraphics, pose, mvpReason,
                 infoStartX + padding,
                 avatarY + (int) (6 * scaleFactor),
-                0xFFFFFFFF, scaleFactor);
+                BOTheme.TEXT_PRIMARY, scaleFactor);
 
         // 渲染玩家名称
         float nameScale = scaleFactor * 2.0f;
         int nameY = avatarY + (int) (COLOR_BAR_HEIGHT * scaleFactor) + (int) (10 * scaleFactor) - 3;
         renderScaledText(guiGraphics, pose, currentPlayerName,
-                infoStartX, nameY, 0xFFFFFFFF, nameScale);
+                infoStartX, nameY, BOTheme.TEXT_PRIMARY, nameScale);
 
         // 渲染额外信息1
         renderScaledText(guiGraphics, pose, extraInfo1,
                 infoStartX,
                 nameY + (int) (font.lineHeight * scaleFactor * 1.4f) + 8,
-                0xFFFFFFFF,
+                BOTheme.TEXT_PRIMARY,
                 scaleFactor * 1.1f);
 
         // 渲染额外信息2
@@ -302,7 +303,7 @@ public class CSMvpHud {
         renderScaledText(guiGraphics, pose, extraInfo2,
                 infoStartX,
                 extraInfo2Y,
-                0xFFFFFFFF,
+                BOTheme.TEXT_PRIMARY,
                 scaleFactor * 1.1f);
     }
 
@@ -373,7 +374,7 @@ public class CSMvpHud {
         float scaleFactor = ((float) screenWidth / BASE_WIDTH);
 
         // 颜色过渡（更快变白）
-        int bgColor = lerpColor(0xAA000000, 0xFFFFFFFF, Math.min(progress * CLOSING_SPEED_FACTOR, 1f));
+        int bgColor = lerpColor(BOTheme.argb(0xAA, BOTheme.PANEL_RGB), BOTheme.PANEL, Math.min(progress * CLOSING_SPEED_FACTOR, 1f));
 
         // 缓动收缩比例（动画更自然）
         float closingRatio = (float) Math.pow(progress, 0.8);

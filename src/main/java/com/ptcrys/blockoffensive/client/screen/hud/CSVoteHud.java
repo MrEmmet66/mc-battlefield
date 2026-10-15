@@ -1,7 +1,7 @@
 package com.ptcrys.blockoffensive.client.screen.hud;
 
 import com.ptcrys.blockoffensive.net.vote.VoteSyncS2CPacket;
-import com.phasetranscrystal.fpsmatch.common.client.screen.mapselect.FPSMGuiTheme;
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.phasetranscrystal.fpsmatch.core.minimap.hud.ScreenRect;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -12,7 +12,7 @@ import net.minecraft.util.Mth;
 /**
  * 全局可复用投票 HUD（加时/取消暂停/换边/未来的踢人/地图投票统一调用）。
  * 由 {@link VoteSyncS2CPacket} 驱动，展示：标题、倒计时进度条、实时同意/反对/未投票数、
- * 通过门槛刻度线、结果结算动画（通过=绿光、否决=红光淡出）。配色统一取自 {@link FPSMGuiTheme}。
+ * 通过门槛刻度线、结果结算动画（通过=绿光、否决=红光淡出）。配色统一取自 {@link BOTheme}。
  */
 public final class CSVoteHud {
     private static final CSVoteHud INSTANCE = new CSVoteHud();
@@ -122,24 +122,24 @@ public final class CSVoteHud {
         int panelHeight = bounds.height();
 
         int accent = switch (result) {
-            case 1 -> FPSMGuiTheme.ST_WAITING;         // 通过：绿
-            case 2 -> FPSMGuiTheme.ACCENT_DANGER;      // 否决：红
-            default -> FPSMGuiTheme.ACCENT_PRIMARY;    // 进行中：品牌蓝
+            case 1 -> BOTheme.STATE_OK;         // 通过：绿
+            case 2 -> BOTheme.STATE_ERROR;      // 否决：红
+            default -> BOTheme.ACCENT;    // 进行中：品牌蓝
         };
 
         // 面板背景 + 边框 + 顶部强调条
-        graphics.fill(left, top, right, bottom, withAlpha(FPSMGuiTheme.BG_PANEL, a));
+        graphics.fill(left, top, right, bottom, withAlpha(BOTheme.PANEL, a));
         graphics.fill(left, top, right, top + 2, withAlpha(accent, a));
-        drawBorder(graphics, left, top, right, bottom, withAlpha(FPSMGuiTheme.BORDER_INNER, a));
+        drawBorder(graphics, left, top, right, bottom, withAlpha(BOTheme.BORDER, a));
 
         // 标题
         Component title = Component.translatable("blockoffensive.vote.hud.title",
                 Component.translatable("blockoffensive.cs." + titleKey));
-        graphics.drawString(font, title, left + 8, top + 6, withAlpha(FPSMGuiTheme.TEXT_TITLE, a), false);
+        graphics.drawString(font, title, left + 8, top + 6, withAlpha(BOTheme.TEXT_PRIMARY, a), false);
 
         // 倒计时数字（右上）
         String secText = Math.max(0, remainingSeconds) + "s";
-        graphics.drawString(font, secText, right - 8 - font.width(secText), top + 6, withAlpha(FPSMGuiTheme.TEXT_SUB, a), false);
+        graphics.drawString(font, secText, right - 8 - font.width(secText), top + 6, withAlpha(BOTheme.TEXT_SECONDARY, a), false);
 
         // 倒计时进度条
         int barX = left + 8;
@@ -147,7 +147,7 @@ public final class CSVoteHud {
         int barW = panelWidth - 16;
         int barH = 4;
         float timeFrac = result != 0 ? 0f : Mth.clamp((remainingSeconds - (now - lastUpdateMs) / 1000f) / totalSeconds, 0f, 1f);
-        graphics.fill(barX, barY, barX + barW, barY + barH, withAlpha(FPSMGuiTheme.SCROLL_TRACK, a));
+        graphics.fill(barX, barY, barX + barW, barY + barH, withAlpha(BOTheme.BORDER, a));
         graphics.fill(barX, barY, barX + (int) (barW * timeFrac), barY + barH, withAlpha(accent, a));
 
         // 票数条：同意(绿) / 反对(红) / 未投(灰)，按 eligible 归一
@@ -157,18 +157,18 @@ public final class CSVoteHud {
         int agreeW = (int) (barW * (agree / (float) denom));
         int disagreeW = (int) (barW * (disagree / (float) denom));
         int cursor = barX;
-        graphics.fill(barX, tallyY, barX + barW, tallyY + tallyH, withAlpha(FPSMGuiTheme.BG_LIST, a));
-        graphics.fill(cursor, tallyY, cursor + agreeW, tallyY + tallyH, withAlpha(FPSMGuiTheme.ST_WAITING, a));
+        graphics.fill(barX, tallyY, barX + barW, tallyY + tallyH, withAlpha(BOTheme.BORDER, a));
+        graphics.fill(cursor, tallyY, cursor + agreeW, tallyY + tallyH, withAlpha(BOTheme.STATE_OK, a));
         cursor += agreeW;
-        graphics.fill(cursor, tallyY, cursor + disagreeW, tallyY + tallyH, withAlpha(FPSMGuiTheme.ACCENT_DANGER, a));
+        graphics.fill(cursor, tallyY, cursor + disagreeW, tallyY + tallyH, withAlpha(BOTheme.STATE_ERROR, a));
 
         // 门槛刻度线
         int thresholdX = barX + (int) (barW * Mth.clamp(threshold, 0f, 1f));
-        graphics.fill(thresholdX, tallyY - 2, thresholdX + 1, tallyY + tallyH + 2, withAlpha(FPSMGuiTheme.TEXT_HIGHLIGHT, a));
+        graphics.fill(thresholdX, tallyY - 2, thresholdX + 1, tallyY + tallyH + 2, withAlpha(BOTheme.ACCENT, a));
 
         // 文本：同意/反对/未投
         Component counts = Component.translatable("blockoffensive.vote.hud.counts", agree, disagree, notVoted);
-        graphics.drawString(font, counts, left + 8, top + Math.min(40, panelHeight - 20), withAlpha(FPSMGuiTheme.TEXT_BODY, a), false);
+        graphics.drawString(font, counts, left + 8, top + Math.min(40, panelHeight - 20), withAlpha(BOTheme.TEXT_PRIMARY, a), false);
 
         // 提示或结果
         Component footer = switch (result) {
@@ -176,7 +176,7 @@ public final class CSVoteHud {
             case 2 -> Component.translatable("blockoffensive.vote.hud.reject");
             default -> Component.translatable("blockoffensive.vote.hud.hint");
         };
-        graphics.drawString(font, footer, left + 8, top + Math.min(50, panelHeight - 10), withAlpha(result == 0 ? FPSMGuiTheme.TEXT_MUTED : accent, a), false);
+        graphics.drawString(font, footer, left + 8, top + Math.min(50, panelHeight - 10), withAlpha(result == 0 ? BOTheme.TEXT_SECONDARY : accent, a), false);
     }
 
     private static void drawBorder(GuiGraphics g, int left, int top, int right, int bottom, int color) {

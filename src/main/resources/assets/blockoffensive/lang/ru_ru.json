@@ -328,5 +328,16 @@
   "blockoffensive.shop.title.explosives": "Взрывчатка",
   "blockoffensive.shop.title.support": "Снабжение",
   "blockoffensive.shop.title.vehicle_ammo": "Боеприпасы техники",
-  "blockoffensive.shop.team.purchase": "%1$s купил: %2$s ($%3$s)"
+  "blockoffensive.shop.team.purchase": "%1$s купил: %2$s ($%3$s)",
+  "blockoffensive.shop.header.title": "\u0417\u0430\u043a\u0443\u043f\u043a\u0430",
+  "blockoffensive.shop.header.team.ct": "CT \u00b7 \u0421\u041f\u0415\u0426\u041d\u0410\u0417",
+  "blockoffensive.shop.header.team.t": "T \u00b7 \u0422\u0415\u0420\u0420\u041e\u0420\u0418\u0421\u0422\u042b",
+  "blockoffensive.shop.header.next_round_min": "\u041c\u0438\u043d. \u043d\u0430 \u0441\u043b\u0435\u0434.: $%1$s",
+  "blockoffensive.shop.hint.category": "1\u2013N  \u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f",
+  "blockoffensive.shop.hint.buy": "\u041b\u041a\u041c  \u0432\u044b\u0431\u043e\u0440  \u00b7  Enter  \u043a\u0443\u043f\u0438\u0442\u044c",
+  "blockoffensive.shop.hint.close": "B  \u0437\u0430\u043a\u0440\u044b\u0442\u044c",
+  "blockoffensive.shop.details.owned": "\u041a\u0443\u043f\u043b\u0435\u043d\u043e: %1$s",
+  "blockoffensive.shop.action.buy": "\u041a\u0423\u041f\u0418\u0422\u042c \u2014 $%1$s",
+  "blockoffensive.shop.action.return": "\u0412\u0415\u0420\u041d\u0423\u0422\u042c",
+  "blockoffensive.shop.badge.locked": "\u0417\u0410\u0411\u041b\u041e\u041a\u0418\u0420\u041e\u0412\u0410\u041d\u041e"
 }

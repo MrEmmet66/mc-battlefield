@@ -2,6 +2,7 @@ package com.ptcrys.blockoffensive.client.screen.hud;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.ptcrys.blockoffensive.client.data.CSClientData;
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.ptcrys.blockoffensive.util.BOUtil;
 import com.phasetranscrystal.fpsmatch.common.client.FPSMClient;
 import com.phasetranscrystal.fpsmatch.common.client.data.FPSMClientGlobalData;
@@ -24,7 +25,7 @@ import static com.phasetranscrystal.fpsmatch.util.RenderUtil.color;
 
 public class CSGameOverlay {
     public static int noColor = color(0,0,0,0);
-    public static int textRoundTimeColor = color(255,255,255);
+    public static int textRoundTimeColor = BOTheme.TEXT_PRIMARY;
 
     private final Map<UUID,String> cachedName = new HashMap<>();
 
@@ -279,7 +280,7 @@ public class CSGameOverlay {
         int progressBarX = progressBar.x();
         int progressBarY = progressBar.y();
 
-        drawRoundedRect(guiGraphics, progressBarX, progressBarY, progressBarWidth, progressBarHeight, 0xFF2D2D2D, 3);
+        drawRoundedRect(guiGraphics, progressBarX, progressBarY, progressBarWidth, progressBarHeight, BOTheme.PANEL, 3);
 
         if (progress > 0) {
             int progressWidth = (int) (progressBarWidth * progress);
@@ -300,11 +301,11 @@ public class CSGameOverlay {
             drawRoundedRect(guiGraphics, progressBarX, progressBarY, progressWidth, progressBarHeight, color, 3);
         }
 
-        guiGraphics.fill(progressBarX, progressBarY, progressBarX + progressBarWidth, progressBarY + 1, 0x66FFFFFF);
-        guiGraphics.fill(progressBarX, progressBarY + 1, progressBarX + 1, progressBarY + progressBarHeight - 1, 0x66FFFFFF);
+        guiGraphics.fill(progressBarX, progressBarY, progressBarX + progressBarWidth, progressBarY + 1, BOTheme.argb(0x66, BOTheme.BORDER_RGB));
+        guiGraphics.fill(progressBarX, progressBarY + 1, progressBarX + 1, progressBarY + progressBarHeight - 1, BOTheme.argb(0x66, BOTheme.BORDER_RGB));
 
-        guiGraphics.fill(progressBarX + progressBarWidth - 1, progressBarY + 1, progressBarX + progressBarWidth, progressBarY + progressBarHeight, 0x66000000);
-        guiGraphics.fill(progressBarX + 1, progressBarY + progressBarHeight - 1, progressBarX + progressBarWidth, progressBarY + progressBarHeight, 0x66000000);
+        guiGraphics.fill(progressBarX + progressBarWidth - 1, progressBarY + 1, progressBarX + progressBarWidth, progressBarY + progressBarHeight, BOTheme.argb(0x66, BOTheme.BORDER_RGB));
+        guiGraphics.fill(progressBarX + 1, progressBarY + progressBarHeight - 1, progressBarX + progressBarWidth, progressBarY + progressBarHeight, BOTheme.argb(0x66, BOTheme.BORDER_RGB));
     }
 
     private void drawRoundedRect(GuiGraphics guiGraphics, int x, int y, int width, int height, int color, int cornerRadius) {
@@ -449,7 +450,7 @@ public class CSGameOverlay {
         guiGraphics.pose().scale(textScale, textScale, 1f);
 
         int w = font.width(str);
-        guiGraphics.drawString(font, str, -w/2, 0, 0xFFFFFFFF, false);
+        guiGraphics.drawString(font, str, -w/2, 0, BOTheme.TEXT_PRIMARY, false);
         guiGraphics.pose().popPose();
     }
 
@@ -466,7 +467,7 @@ public class CSGameOverlay {
         guiGraphics.pose().scale(textScale, textScale, 1f);
 
         int w = font.width(moneyStr);
-        guiGraphics.drawString(font, moneyStr, -w/2, 0, 0xFFFFFFFF, false);
+        guiGraphics.drawString(font, moneyStr, -w/2, 0, BOTheme.TEXT_PRIMARY, false);
 
         guiGraphics.pose().popPose();
     }
@@ -510,9 +511,9 @@ public class CSGameOverlay {
         int remainingSecondsPart = totalSeconds % 60;
 
         if(remainingMinutes == 0 && remainingSecondsPart <= 10){
-            textRoundTimeColor = color(240,40,40);
+            textRoundTimeColor = BOTheme.STATE_ERROR;
         }else {
-            textRoundTimeColor = color(255,255,255);
+            textRoundTimeColor = BOTheme.TEXT_PRIMARY;
         }
 
         String minutesPart = String.format("%02d", remainingMinutes);

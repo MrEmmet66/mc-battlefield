@@ -2,7 +2,7 @@ package com.ptcrys.blockoffensive.client.screen.hud;
 
 import com.ptcrys.blockoffensive.BOConfig;
 import com.ptcrys.blockoffensive.net.spec.SpectatorRosterS2CPacket;
-import com.phasetranscrystal.fpsmatch.common.client.screen.mapselect.FPSMGuiTheme;
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -13,7 +13,7 @@ import java.util.List;
 
 /**
  * 观战者名单侧栏（仅观战时显示）。展示当前正在观战对局的玩家名单。
- * 弥补此前“无观战者列表 UI”的缺口。配色统一取自 {@link FPSMGuiTheme}。
+ * 弥补此前“无观战者列表 UI”的缺口。配色统一取自 {@link BOTheme}。
  */
 public final class CSSpectatorRoster {
     private static final CSSpectatorRoster INSTANCE = new CSSpectatorRoster();
@@ -69,21 +69,21 @@ public final class CSSpectatorRoster {
         int right = left + PANEL_WIDTH;
         int bottom = top + panelHeight;
 
-        graphics.fill(left, top, right, bottom, FPSMGuiTheme.BG_PANEL);
-        graphics.fill(left, top, right, top + 2, FPSMGuiTheme.ST_SPECTATOR);
-        drawBorder(graphics, left, top, right, bottom, FPSMGuiTheme.BORDER_INNER);
+        graphics.fill(left, top, right, bottom, BOTheme.PANEL);
+        graphics.fill(left, top, right, top + 2, BOTheme.ACCENT);
+        drawBorder(graphics, left, top, right, bottom, BOTheme.BORDER);
 
         Component title = Component.translatable("blockoffensive.spectator.roster.title", current.size());
-        graphics.drawString(font, title, left + 6, top + 5, FPSMGuiTheme.TEXT_TITLE, false);
+        graphics.drawString(font, title, left + 6, top + 5, BOTheme.TEXT_PRIMARY, false);
 
         int y = top + 16;
         for (int i = 0; i < shown; i++) {
             String name = current.get(i);
-            graphics.drawString(font, clip(font, name, PANEL_WIDTH - 12), left + 6, y, FPSMGuiTheme.TEXT_BODY, false);
+            graphics.drawString(font, clip(font, name, PANEL_WIDTH - 12), left + 6, y, BOTheme.TEXT_PRIMARY, false);
             y += ROW_HEIGHT;
         }
         if (current.size() > MAX_ROWS) {
-            graphics.drawString(font, Component.literal("+" + (current.size() - MAX_ROWS)), left + 6, y, FPSMGuiTheme.TEXT_MUTED, false);
+            graphics.drawString(font, Component.literal("+" + (current.size() - MAX_ROWS)), left + 6, y, BOTheme.TEXT_SECONDARY, false);
         }
     }
 

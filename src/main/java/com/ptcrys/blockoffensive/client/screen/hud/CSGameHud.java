@@ -5,6 +5,7 @@ import com.ptcrys.blockoffensive.BOConfig;
 import com.ptcrys.blockoffensive.client.data.CSClientData;
 import com.ptcrys.blockoffensive.client.screen.hud.animation.EnderKillAnimator;
 import com.ptcrys.blockoffensive.client.screen.hud.animation.KillAnimator;
+import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.ptcrys.blockoffensive.compat.BOImpl;
 import com.ptcrys.blockoffensive.compat.HitIndicationCompat;
 import com.ptcrys.blockoffensive.data.DeathMessage;
@@ -297,12 +298,12 @@ public class CSGameHud implements IHudRenderer {
             guiGraphics.pose().pushPose();
             guiGraphics.pose().translate(healthTextX + (float) tempWidth / 2 - (float) font.width(healthText), healthTextY,0);
             guiGraphics.pose().scale(2,2,0);
-            guiGraphics.drawString(font, healthText, 0, 0, 0xFFFFFFFF, false);
+            guiGraphics.drawString(font, healthText, 0, 0, BOTheme.TEXT_PRIMARY, false);
             guiGraphics.pose().popPose();
 
             // Render health bar
-            guiGraphics.fill(healthTextX, healthBarY, healthTextX + tempWidth, healthBarY + healthBarHeight, 0x80000000); // Background
-            guiGraphics.fill(healthTextX, healthBarY, healthTextX + healthBarFillWidth, healthBarY + healthBarHeight, 0x8000FF00); // Fill
+            guiGraphics.fill(healthTextX, healthBarY, healthTextX + tempWidth, healthBarY + healthBarHeight, BOTheme.argb(0x80, BOTheme.PANEL_RGB)); // Background
+            guiGraphics.fill(healthTextX, healthBarY, healthTextX + healthBarFillWidth, healthBarY + healthBarHeight, BOTheme.argb(0x80, BOTheme.STATE_OK_RGB)); // Fill
         }
     }
 
@@ -314,7 +315,7 @@ public class CSGameHud implements IHudRenderer {
         guiGraphics.blit(GUI_ICONS_LOCATION, healthTextX - 9, healthTextY, BulletproofArmorAttribute.Client.bpAttributeHasHelmet ? 34 : 25, 9, 9, 9);
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(healthTextX - width + 1, healthTextY + 6,0);
-        guiGraphics.drawString(font, text, 0, 0, 0xFFFFFFFF, false);
+        guiGraphics.drawString(font, text, 0, 0, BOTheme.TEXT_PRIMARY, false);
         guiGraphics.pose().popPose();
     }
 
@@ -382,7 +383,7 @@ public class CSGameHud implements IHudRenderer {
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(invAmmoTextX, textY, 0);
         guiGraphics.pose().scale(2,2,0);
-        guiGraphics.drawString(font, currentAmmoCountText, 0, 0, ammoCount == 0 ? 0xFFFF0000 : 0xFFFFFFFF, false);
+        guiGraphics.drawString(font, currentAmmoCountText, 0, 0, ammoCount == 0 ? BOTheme.STATE_ERROR : BOTheme.TEXT_PRIMARY, false);
         guiGraphics.pose().popPose();
 
         int sY = y - (font.lineHeight / 2);
@@ -393,7 +394,7 @@ public class CSGameHud implements IHudRenderer {
         guiGraphics.pose().pushPose();
         guiGraphics.pose().translate(ttt + 3.5, y - (font.lineHeight * 1.5F / 2) + 0.5F, 0);
         guiGraphics.pose().scale(1.5F,1.5F,0);
-        guiGraphics.drawString(font, inventoryAmmoCountText, 0, 0, cacheInventoryAmmoCount == 0 ? 0xFFFF0000 : 0xFFFFFFFF, false);
+        guiGraphics.drawString(font, inventoryAmmoCountText, 0, 0, cacheInventoryAmmoCount == 0 ? BOTheme.STATE_ERROR : BOTheme.TEXT_PRIMARY, false);
         guiGraphics.pose().popPose();
 
 
@@ -427,7 +428,7 @@ public class CSGameHud implements IHudRenderer {
         final int spacing = Math.max(1, Math.round(5 * scale));
         final int outer = Math.max(1, Math.round(3 * scale));
         final int maxOffset = Math.max(1, Math.round(15 * scale));
-        final int TEXT_COLOR = 0xFFFFFFFF;
+        final int TEXT_COLOR = BOTheme.TEXT_PRIMARY;
         final int moveDuration = 250;
 
         Player player = mc.player;

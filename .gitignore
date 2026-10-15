@@ -156,3 +156,14 @@ docs/
 # Misc
 .tmp-readme-wiki-link
 .wiki
+
+# Local build/download artifacts (not tracked)
+libs-download/
+local-maven-backup/
+
+# Local Maven fallback artifacts (Gradle re-fetches from remote mavens; only
+# local-maven/com/ptcrys/fpsmatch/1.3.0/fpsmatch-1.3.0.pom is tracked upstream)
+local-maven/maven/
+local-maven/curse/
+local-maven/dev/
+local-maven/com/lowdragmc/
