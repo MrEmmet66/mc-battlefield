@@ -44,7 +44,11 @@ public class MapLobbyController {
             handleReadyCountdown();
             return;
         }
+        boolean readyCountdownWasRunning = readyCountdownTimer != 0 || readyCountdownAnnounced;
         resetReadyCountdownState();
+        if (readyCountdownWasRunning) {
+            map.broadcastReadyCountdown(0);
+        }
 
         if (map.autoStart.get() && map.canAutoStart()) {
             handleAutoStartCountdown();

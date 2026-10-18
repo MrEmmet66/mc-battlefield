@@ -135,6 +135,7 @@ public final class MapRoomActionService {
             return Result.failure(Component.translatable("gui.fpsm.map_select.action.ready.spectator"));
         }
         boolean ready = map.toggleReady(player);
+        map.broadcastReadyState();
         Component message = ready
                 ? Component.translatable("gui.fpsm.map_select.action.ready.on")
                 : Component.translatable("gui.fpsm.map_select.action.ready.off");

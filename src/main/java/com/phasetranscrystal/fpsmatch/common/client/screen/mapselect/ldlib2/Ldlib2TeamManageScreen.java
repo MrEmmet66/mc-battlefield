@@ -58,6 +58,7 @@ public final class Ldlib2TeamManageScreen extends Ldlib2MapChildScreen {
     private static final int COLUMN_PANEL_PAD = 4;
     private static final int TEAM_TAB_WIDTH = 96;
     private static final int MAX_VISIBLE_SLOTS = 5;
+    private static final long READY_TOGGLE_COOLDOWN_MILLIS = 1000L;
 
     private static final int INFO_TOP = MapSelectionLayoutModel.HEADER_HEIGHT + PADDING;
     private static final int TABS_TOP = INFO_TOP + INFO_HEIGHT + GAP;
@@ -88,6 +89,7 @@ public final class Ldlib2TeamManageScreen extends Ldlib2MapChildScreen {
 
     private final Set<UUID> syncedReadyPlayers = new HashSet<>();
     private int syncedCountdownSeconds;
+    private long readyToggleCooldownUntilMillis;
     private int rowHeight = BASE_ROW_HEIGHT;
     private UUID selectedPlayer;
     private String selectedPlayerTeam;
@@ -124,7 +126,7 @@ public final class Ldlib2TeamManageScreen extends Ldlib2MapChildScreen {
         this.readyButton = parts.readyButton();
         this.mapCard = parts.mapCard();
 
-        this.syncedReadyPlayers.addAll(detail.readyPlayers());
+        populateSyncedReadyPlayers();
         this.syncedCountdownSeconds = detail.summary().readyCountdownSeconds();
         this.wasStarted = detail.summary().started();
 
@@ -163,9 +165,9 @@ public final class Ldlib2TeamManageScreen extends Ldlib2MapChildScreen {
         }
         wasStarted = started;
 
-        syncedReadyPlayers.clear();
-        syncedReadyPlayers.addAll(detail.readyPlayers());
+        populateSyncedReadyPlayers();
         syncedCountdownSeconds = detail.summary().readyCountdownSeconds();
+        clearReadyToggleCooldown();
         if (selectedPlayer != null && detail.players().stream().noneMatch(p -> p.uuid().equals(selectedPlayer))) {
             selectedPlayer = null;
             selectedPlayerTeam = null;
@@ -183,10 +185,7 @@ public final class Ldlib2TeamManageScreen extends Ldlib2MapChildScreen {
         this.syncedCountdownSeconds = countdownSeconds;
         this.syncedReadyPlayers.clear();
         this.syncedReadyPlayers.addAll(readyPlayers);
-        if (countdownSeconds <= 0) {
-            closeForMatchStart();
-            return;
-        }
+        clearReadyToggleCooldown();
         refresh();
     }
 
@@ -592,7 +591,8 @@ public final class Ldlib2TeamManageScreen extends Ldlib2MapChildScreen {
     private void updateReadyButton() {
         Minecraft mc = Minecraft.getInstance();
         boolean joined = detail.summary().currentPlayerJoined();
-        boolean active = joined && mc.player != null;
+        boolean cooldown = System.currentTimeMillis() < readyToggleCooldownUntilMillis;
+        boolean active = joined && mc.player != null && !cooldown;
         readyButton.setActive(active);
         boolean ready = mc.player != null && isReady(mc.player.getUUID());
         readyButton.setText(Component.translatable(ready ? "gui.fpsm.team_manage.ready.off" : "gui.fpsm.team_manage.ready.on"));
@@ -682,7 +682,9 @@ public final class Ldlib2TeamManageScreen extends Ldlib2MapChildScreen {
         if (mc.player == null) {
             return;
         }
+        readyToggleCooldownUntilMillis = System.currentTimeMillis() + READY_TOGGLE_COOLDOWN_MILLIS;
         sendAction(MapRoomActionC2SPacket.Action.READY, mc.player.getUUID());
+        refresh();
     }
 
     private void sendAction(MapRoomActionC2SPacket.Action action, UUID target) {
@@ -707,9 +709,22 @@ public final class Ldlib2TeamManageScreen extends Ldlib2MapChildScreen {
         return !detail.summary().started() || detail.summary().allowJoinInProgress();
     }
 
+    private void populateSyncedReadyPlayers() {
+        syncedReadyPlayers.clear();
+        syncedReadyPlayers.addAll(detail.readyPlayers());
+        for (MapRoomPlayerInfo player : detail.players()) {
+            if (player.ready()) {
+                syncedReadyPlayers.add(player.uuid());
+            }
+        }
+    }
+
+    private void clearReadyToggleCooldown() {
+        readyToggleCooldownUntilMillis = 0L;
+    }
+
     private boolean isReady(UUID uuid) {
-        return syncedReadyPlayers.contains(uuid) || detail.players().stream()
-                .anyMatch(p -> p.uuid().equals(uuid) && p.ready());
+        return syncedReadyPlayers.contains(uuid);
     }
 
     private String selfTeamName() {

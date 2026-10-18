@@ -300,4 +300,42 @@ class FPSMatchIssueRegressionTest {
         assertTrue(ldlib2.contains("new Ldlib2MapManageScreen"));
         assertTrue(ldlib2.contains("new Ldlib2TeamManageScreen"));
     }
+
+    @Test
+    void unreadyDuringCountdownBroadcastsAbortAndKeepsLobbyOpen() throws IOException {
+        String lobby = Files.readString(Path.of("src/main/java/com/phasetranscrystal/fpsmatch/core/map/MapLobbyController.java"));
+        String screen = Files.readString(Path.of("src/main/java/com/phasetranscrystal/fpsmatch/common/client/screen/mapselect/ldlib2/Ldlib2TeamManageScreen.java"));
+
+        assertTrue(lobby.contains("readyCountdownWasRunning"));
+        assertTrue(lobby.contains("map.broadcastReadyCountdown(0);"));
+
+        int applyReady = screen.indexOf("public void applyReadyState");
+        int closeForMatchStart = screen.indexOf("private void closeForMatchStart", applyReady);
+        String applyBody = screen.substring(applyReady, closeForMatchStart);
+        assertTrue(applyBody.contains("refresh();"));
+        assertFalse(applyBody.contains("closeForMatchStart()"));
+    }
+
+    @Test
+    void unreadyUsesSingleReadySourceAndBroadcastsImmediately() throws IOException {
+        String screen = Files.readString(Path.of("src/main/java/com/phasetranscrystal/fpsmatch/common/client/screen/mapselect/ldlib2/Ldlib2TeamManageScreen.java"));
+        String action = Files.readString(Path.of("src/main/java/com/phasetranscrystal/fpsmatch/common/mapselect/MapRoomActionService.java"));
+        String baseMap = Files.readString(Path.of("src/main/java/com/phasetranscrystal/fpsmatch/core/map/BaseMap.java"));
+
+        int isReady = screen.indexOf("private boolean isReady");
+        int selfTeam = screen.indexOf("private String selfTeamName", isReady);
+        assertTrue(isReady >= 0 && selfTeam > isReady);
+        String isReadyBody = screen.substring(isReady, selfTeam);
+        assertTrue(isReadyBody.contains("return syncedReadyPlayers.contains(uuid);"));
+        assertFalse(isReadyBody.contains("detail.players()"));
+
+        int ready = action.indexOf("public static Result ready(ServerPlayer player, BaseMap map)");
+        int switchTeam = action.indexOf("public static Result switchTeam", ready);
+        assertTrue(ready >= 0 && switchTeam > ready);
+        String readyBody = action.substring(ready, switchTeam);
+        assertTrue(readyBody.contains("map.broadcastReadyState();"));
+
+        assertTrue(baseMap.contains("public void broadcastReadyState()"));
+        assertTrue(baseMap.contains("broadcastReadyCountdown(getReadyCountdownSeconds());"));
+    }
 }

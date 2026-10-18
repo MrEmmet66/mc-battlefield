@@ -234,6 +234,13 @@ public abstract class BaseMap {
     }
 
     /**
+     * 立即广播当前准备状态（准备切换后使用，避免等待下一轮周期性详情同步）。
+     */
+    public void broadcastReadyState() {
+        broadcastReadyCountdown(getReadyCountdownSeconds());
+    }
+
+    /**
      * 子类可覆盖：倒计时结束时如何开始游戏。
      */
     protected void startGameWithAnnouncement() {
