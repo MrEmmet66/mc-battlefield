@@ -2,6 +2,7 @@ package com.ptcrys.blockoffensive.client.screen;
 
 import com.ptcrys.blockoffensive.BlockOffensive;
 import com.ptcrys.blockoffensive.client.data.CSClientData;
+import com.ptcrys.blockoffensive.client.data.ShopFavorites;
 import com.ptcrys.blockoffensive.client.renderer.ShopSlotRenderer;
 import com.ptcrys.blockoffensive.client.ui.BOTheme;
 import com.ptcrys.blockoffensive.map.shop.ItemType;
@@ -44,6 +45,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import com.tacz.guns.api.item.IAmmo;
+import com.ptcrys.blockoffensive.util.ShopDoubleClick;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
@@ -71,8 +76,10 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
     private static volatile long lastSnapshotDebugLogTime = 0L;
     private final Map<Long, PendingShopAction> pendingActions = new HashMap<>();
     private static int selectedCategory = 0;
+    private static final int FAVORITES_CATEGORY = -1;
     private static volatile OverlaySnapshot activeOverlay = null;
     private WindowLayout window;
+    private final ShopDoubleClick doubleClick = new ShopDoubleClick();
 
     public CSGameShopScreen() {
     }
@@ -86,6 +93,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
     }
 
     public static String getCategoryTitle(int index) {
+        if (index == FAVORITES_CATEGORY) return I18n.get("blockoffensive.shop.title.favorites");
         ItemType[] values = ItemType.values();
         if (index < 0 || index >= values.length) index = 0;
         ItemType type = values[index];
@@ -167,6 +175,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
     public void onDestroyView() {
         window = null;
         pendingActions.clear();
+        doubleClick.reset();
         activeOverlay = null;
         super.onDestroyView();
     }
@@ -185,6 +194,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
     }
 
     public void attemptBuy(ItemType type, int index) {
+        doubleClick.reset();
         ClientShopSlot slot = FPSMClient.getGlobalData().getSlotData(type.name(), index);
         if (slot == null) return;
         boolean enable = CSClientData.canOpenShop && CSClientData.getMoney() >= slot.cost() && !slot.itemStack().isEmpty();
@@ -198,6 +208,42 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         if (wl != null) {
             wl.invalidate();
         }
+    }
+
+    private void clickItem(ItemType type, int index) {
+        selectItem(type, index);
+        if (doubleClick.click(type.ordinal(), index, System.nanoTime() / 1_000_000L)) {
+            attemptBuy(type, index);
+        }
+    }
+
+    private void buyAmmo(ItemType type, int index) {
+        doubleClick.reset();
+        selectItem(type, index);
+        ClientShopSlot weapon = FPSMClient.getGlobalData().getSlotData(type.name(), index);
+        if (weapon == null || weapon.itemStack().isEmpty()) return;
+        ItemStack gun = weapon.itemStack();
+        for (ItemType ammoType : List.of(ItemType.AMMO, ItemType.EXPLOSIVES, ItemType.VEHICLE_AMMO)) {
+            for (int i = 0; i < ammoType.slotCount(); i++) {
+                ClientShopSlot ammo = FPSMClient.getGlobalData().getSlotData(ammoType.name(), i);
+                if (ammo == null || ammo.itemStack().isEmpty()) continue;
+                ItemStack stack = ammo.itemStack();
+                boolean matches = stack.getItem() instanceof IAmmo taczAmmo && taczAmmo.isAmmoOfGun(gun, stack);
+                // The RPG is the only Superb Warfare handheld launcher in the shop.
+                matches |= new ResourceLocation("superbwarfare", "rpg").equals(ForgeRegistries.ITEMS.getKey(gun.getItem()))
+                        && new ResourceLocation("superbwarfare", "rpg_rocket_standard").equals(ForgeRegistries.ITEMS.getKey(stack.getItem()));
+                if (matches) {
+                    attemptBuy(ammoType, i);
+                    return;
+                }
+            }
+        }
+        Minecraft mc = Minecraft.getInstance();
+        mc.execute(() -> {
+            if (mc.player != null) {
+                mc.player.displayClientMessage(Component.translatable("blockoffensive.shop.ammo.unavailable"), true);
+            }
+        });
     }
 
     private static void playPurchaseSound(ItemType type, int index) {
@@ -360,6 +406,11 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         private TextView detailsOwnedText;
         private TextView detailsDescText;
         private TextView buyButton;
+        private TextView favoriteButton;
+        private ShapeDrawable favoriteButtonBg;
+        private TextView emptyFavoritesText;
+        private boolean cachedFavorite;
+        private boolean favoriteStateInitialized;
 
         private ShapeDrawable buyButtonBg;
 
@@ -435,15 +486,12 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             buildBody();
 
             ItemType[] values = ItemType.values();
-            if (selectedCategory < 0 || selectedCategory >= values.length || values[selectedCategory].slotCount() == 0) {
+            if (selectedCategory != FAVORITES_CATEGORY && (selectedCategory < 0 || selectedCategory >= values.length || values[selectedCategory].slotCount() == 0)) {
                 selectedCategory = getVisibleOrdinals().get(0);
             }
             refreshSidebarSelection();
             rebuildItems();
-            ItemType type = ItemType.values()[selectedCategory];
-            int sel = ShopOverlayLayout.resolveSelectionIndex(selectedByOrdinal, selectedCategory, type.slotCount());
-            selectedType = type;
-            selectedIndex = sel;
+            restoreCategorySelection();
             applySelectionToCards();
             updateText();
             refreshDetails();
@@ -533,6 +581,10 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         private void buildSidebar() {
             sidebar = new LinearLayout(getContext());
             sidebar.setOrientation(LinearLayout.VERTICAL);
+            CategoryButton favorites = new CategoryButton(getContext(), FAVORITES_CATEGORY, 0);
+            favorites.setOnClickListener(v -> selectCategory(FAVORITES_CATEGORY));
+            categoryButtons.add(favorites);
+            sidebar.addView(favorites, new LinearLayout.LayoutParams(MATCH_PARENT, (int) CategoryButton.BUTTON_HEIGHT));
             List<Integer> visible = getVisibleOrdinals();
             for (int pos = 0; pos < visible.size(); pos++) {
                 int ordinal = visible.get(pos);
@@ -548,6 +600,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
 
             hintTexts.add(makeHint("blockoffensive.shop.hint.category"));
             hintTexts.add(makeHint("blockoffensive.shop.hint.buy"));
+            hintTexts.add(makeHint("blockoffensive.shop.hint.ammo"));
             hintTexts.add(makeHint("blockoffensive.shop.hint.close"));
             for (TextView h : hintTexts) {
                 sidebar.addView(h, new LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT));
@@ -641,6 +694,14 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             View spacer = new View(getContext());
             detailsPanel.addView(spacer, new LinearLayout.LayoutParams(MATCH_PARENT, 0, 1.0f));
 
+            favoriteButton = makeText(13, BOTheme.ACCENT_RGB, Gravity.CENTER);
+            favoriteButtonBg = shape(BOTheme.mui(BOTheme.CARD_RGB), BOTheme.RADIUS,
+                    BOTheme.BORDER_WIDTH, BOTheme.mui(BOTheme.BORDER_STRONG_RGB));
+            favoriteButton.setBackground(favoriteButtonBg);
+            favoriteButton.setVisibility(View.INVISIBLE);
+            favoriteButton.setOnClickListener(v -> toggleFavorite());
+            detailsPanel.addView(favoriteButton, new LinearLayout.LayoutParams(MATCH_PARENT, (int) BUY_BUTTON_H));
+
             buyButton = new TextView(getContext());
             buyButtonBg = shape(BOTheme.mui(BOTheme.ACCENT_STRONG_RGB), BOTheme.RADIUS);
             buyButton.setBackground(buyButtonBg);
@@ -698,17 +759,15 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         };
 
         public void selectCategory(int index) {
-            if (index < 0 || index >= ItemType.values().length) return;
+            if (index != FAVORITES_CATEGORY && (index < 0 || index >= ItemType.values().length)) return;
+            host.doubleClick.reset();
             selectedCategory = index;
             refreshSidebarSelection();
             rebuildItems();
             if (gridScroll != null) {
                 gridScroll.scrollTo(0, 0);
             }
-            ItemType type = ItemType.values()[selectedCategory];
-            int sel = ShopOverlayLayout.resolveSelectionIndex(selectedByOrdinal, selectedCategory, type.slotCount());
-            selectedType = type;
-            selectedIndex = sel;
+            restoreCategorySelection();
             applySelectionToCards();
             refreshDetails();
             publishOverlaySnapshot("category");
@@ -717,7 +776,49 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         private void refreshSidebarSelection() {
             for (CategoryButton button : categoryButtons) {
                 button.setSelected(button.index == selectedCategory);
+                if (button.index == FAVORITES_CATEGORY) button.countText.setText(String.valueOf(favoriteEntries().size()));
             }
+        }
+
+        private record ShopEntry(ItemType type, int index) {}
+
+        private static List<ShopEntry> favoriteEntries() {
+            List<ShopEntry> entries = new ArrayList<>();
+            for (ItemType type : ItemType.values()) {
+                for (int i = 0; i < type.slotCount(); i++) {
+                    ClientShopSlot slot = FPSMClient.getGlobalData().getSlotData(type.name(), i);
+                    if (slot != null && ShopFavorites.contains(slot.itemStack())) entries.add(new ShopEntry(type, i));
+                }
+            }
+            return entries;
+        }
+
+        private void restoreCategorySelection() {
+            if (selectedCategory == FAVORITES_CATEGORY) {
+                if (currentButtons.stream().noneMatch(button -> button.type == selectedType && button.index == selectedIndex)) {
+                    selectedType = currentButtons.isEmpty() ? null : currentButtons.get(0).type;
+                    selectedIndex = currentButtons.isEmpty() ? -1 : currentButtons.get(0).index;
+                }
+            } else {
+                selectedType = ItemType.values()[selectedCategory];
+                selectedIndex = ShopOverlayLayout.resolveSelectionIndex(selectedByOrdinal, selectedCategory, selectedType.slotCount());
+            }
+        }
+
+        private void toggleFavorite() {
+            if (selectedType == null || selectedIndex < 0) return;
+            ClientShopSlot slot = FPSMClient.getGlobalData().getSlotData(selectedType.name(), selectedIndex);
+            if (slot == null || slot.itemStack().isEmpty()) return;
+            host.doubleClick.reset();
+            ShopFavorites.toggle(slot.itemStack());
+            if (selectedCategory == FAVORITES_CATEGORY) {
+                rebuildItems();
+                restoreCategorySelection();
+                applySelectionToCards();
+            }
+            refreshSidebarSelection();
+            refreshDetails();
+            publishOverlaySnapshot("favorite");
         }
 
         private int computeColumns() {
@@ -732,11 +833,25 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
 
         private void rebuildItems() {
             itemsContainer.removeAllViews();
-            ItemType type = ItemType.values()[selectedCategory];
-            int count = type.slotCount();
+            List<ShopEntry> entries = new ArrayList<>();
+            if (selectedCategory == FAVORITES_CATEGORY) {
+                entries.addAll(favoriteEntries());
+            } else {
+                ItemType type = ItemType.values()[selectedCategory];
+                for (int i = 0; i < type.slotCount(); i++) entries.add(new ShopEntry(type, i));
+            }
+            int count = entries.size();
             cardColumns = computeColumns();
             categoryTitleText.setText(getCategoryTitle(selectedCategory).toUpperCase(Locale.ROOT));
             categoryCountChip.setText(String.valueOf(count));
+            if (selectedCategory == FAVORITES_CATEGORY && count == 0) {
+                emptyFavoritesText = makeText(13, BOTheme.TEXT_SECONDARY_RGB, Gravity.CENTER);
+                emptyFavoritesText.setMaxLines(4);
+                emptyFavoritesText.setText(I18n.get("blockoffensive.shop.favorites.empty"));
+                itemsContainer.addView(emptyFavoritesText, new LinearLayout.LayoutParams(MATCH_PARENT, (int) (150 * scale)));
+            } else {
+                emptyFavoritesText = null;
+            }
             List<GunButtonLayout> buttons = new ArrayList<>();
             final int gap = (int) (CARD_GAP * scale);
             final int rowHeight = (int) (CARD_HEIGHT * scale);
@@ -757,7 +872,8 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
                     cp.leftMargin = gap / 2;
                 }
                 if (j < count) {
-                    GunButtonLayout button = new GunButtonLayout(getContext(), type, j, host);
+                    ShopEntry entry = entries.get(j);
+                    GunButtonLayout button = new GunButtonLayout(getContext(), entry.type, entry.index, host);
                     buttons.add(button);
                     button.setScale(scale);
                     row.addView(button, cp);
@@ -767,7 +883,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
                     row.addView(spacer, cp);
                 }
             }
-            shopButtons.put(type, buttons);
+            if (selectedCategory != FAVORITES_CATEGORY) shopButtons.put(ItemType.values()[selectedCategory], buttons);
             currentButtons = buttons;
             post(() -> publishOverlaySnapshot("rebuild"));
         }
@@ -776,7 +892,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             if (type == null || index < 0) return;
             selectedType = type;
             selectedIndex = index;
-            if (ItemType.values()[selectedCategory] == type) {
+            if (selectedCategory == type.ordinal()) {
                 selectedByOrdinal[type.ordinal()] = index;
             }
             applySelectionToCards();
@@ -837,9 +953,15 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             SlotIcon[] grid = new SlotIcon[iconEntries.size()];
             for (int i = 0; i < iconEntries.size(); i++) {
                 ShopOverlayLayout.IconEntry e = iconEntries.get(i);
-                grid[i] = new SlotIcon(ItemType.values()[e.typeOrdinal], e.index, e.x, e.y, e.w, e.h, e.fullH);
+                GunButtonLayout button = buttons.get(e.index);
+                grid[i] = new SlotIcon(button.type, button.index, e.x, e.y, e.w, e.h, e.fullH);
             }
-            List<ShopOverlayLayout.CardDesc> cards = ShopOverlayLayout.computeCards(geometry);
+            List<ShopOverlayLayout.CardDesc> cards = new ArrayList<>();
+            for (ShopOverlayLayout.CardDesc card : ShopOverlayLayout.computeCards(geometry)) {
+                GunButtonLayout button = buttons.get(card.index);
+                cards.add(new ShopOverlayLayout.CardDesc(button.type.ordinal(), button.index,
+                        card.x, card.y, card.w, card.iconH, card.fullH, card.laidOut));
+            }
 
             SlotIcon detailsIcon = computeDetailsIcon();
 
@@ -977,6 +1099,12 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             if (gridScroll != null) {
                 gridScroll.setScrollBarSize((int) Math.max(3, 5 * s));
             }
+            if (emptyFavoritesText != null) {
+                emptyFavoritesText.setTextSize(13 * s);
+                LinearLayout.LayoutParams emptyLp = (LinearLayout.LayoutParams) emptyFavoritesText.getLayoutParams();
+                emptyLp.height = (int) (150 * s);
+                emptyFavoritesText.setLayoutParams(emptyLp);
+            }
             this.cardH = (int) (CARD_HEIGHT * s);
             this.cardGap = (int) (CARD_GAP * s);
             this.cardIconH = (int) (GunButtonLayout.ICON_AREA_HEIGHT * s);
@@ -1004,6 +1132,10 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             detailsPriceText.setTextSize(20 * s);
             detailsOwnedText.setTextSize(12 * s);
             detailsDescText.setTextSize(12 * s);
+            favoriteButton.setTextSize(13 * s);
+            LinearLayout.LayoutParams favoriteLp = (LinearLayout.LayoutParams) favoriteButton.getLayoutParams();
+            favoriteLp.height = (int) (BUY_BUTTON_H * s);
+            favoriteButton.setLayoutParams(favoriteLp);
             buyButton.setTextSize(14 * s);
 
             LinearLayout.LayoutParams buyLp = (LinearLayout.LayoutParams) buyButton.getLayoutParams();
@@ -1120,6 +1252,8 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
                     detailsDescText.setText("");
                     detailsOwnedText.setVisibility(View.GONE);
                     buyButton.setVisibility(View.INVISIBLE);
+                    favoriteButton.setVisibility(View.INVISIBLE);
+                    favoriteStateInitialized = false;
                 }
                 return;
             }
@@ -1133,6 +1267,14 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             }
 
             detailsIconView.setVisibility(View.VISIBLE);
+            favoriteButton.setVisibility(View.VISIBLE);
+            boolean favorite = ShopFavorites.contains(slot.itemStack());
+            if (!favoriteStateInitialized || favorite != cachedFavorite) {
+                favoriteStateInitialized = true;
+                cachedFavorite = favorite;
+                favoriteButton.setText(I18n.get(favorite ? "blockoffensive.shop.favorite.remove" : "blockoffensive.shop.favorite.add"));
+                favoriteButtonBg.setColor(BOTheme.mui(favorite ? BOTheme.ACCENT_SOFT_RGB : BOTheme.CARD_RGB));
+            }
 
             boolean changed = (selectedType != renderedType || selectedIndex != renderedIndex);
             if (changed || refreshFlag) {
@@ -1208,6 +1350,10 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
         }
 
         public boolean handleHotkey(int keyCode) {
+            if (keyCode == GLFW.GLFW_KEY_0) {
+                selectCategory(FAVORITES_CATEGORY);
+                return true;
+            }
             if (keyCode >= GLFW.GLFW_KEY_1 && keyCode <= GLFW.GLFW_KEY_9) {
                 selectVisibleCategory(keyCode - GLFW.GLFW_KEY_1 + 1);
                 return true;
@@ -1271,7 +1417,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             numText.setTextSize(12);
             numText.setGravity(Gravity.CENTER);
             numText.setMaxLines(1);
-            numText.setText(String.valueOf(displayNumber));
+            numText.setText(index == FAVORITES_CATEGORY ? "\u2605" : String.valueOf(displayNumber));
             numBg = new ShapeDrawable();
             numBg.setShape(ShapeDrawable.RECTANGLE);
             numBg.setCornerRadius(BOTheme.RADIUS_SMALL);
@@ -1295,7 +1441,7 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
             countText.setMaxLines(1);
             countText.setGravity(Gravity.CENTER | Gravity.RIGHT);
             countText.setTextColor(BOTheme.mui(BOTheme.TEXT_SECONDARY_RGB));
-            countText.setText(String.valueOf(ItemType.values()[index].slotCount()));
+            countText.setText(String.valueOf(index == FAVORITES_CATEGORY ? WindowLayout.favoriteEntries().size() : ItemType.values()[index].slotCount()));
             countText.setPadding(0, 0, (int) 10, 0);
             addView(countText, new LinearLayout.LayoutParams(WRAP_CONTENT, MATCH_PARENT));
         }
@@ -1493,7 +1639,11 @@ public class CSGameShopScreen extends Fragment implements ScreenCallback {
                 this.background.setColor(BOTheme.mui(lerpRgb(BOTheme.CARD_RGB, BOTheme.CARD_HOVER_RGB, t)));
             });
 
-            setOnClickListener(v -> host.selectItem(this.type, this.index));
+            setOnClickListener(v -> host.clickItem(this.type, this.index));
+            setOnContextClickListener(v -> {
+                host.buyAmmo(this.type, this.index);
+                return true;
+            });
         }
 
         public ClientShopSlot getSlot() {

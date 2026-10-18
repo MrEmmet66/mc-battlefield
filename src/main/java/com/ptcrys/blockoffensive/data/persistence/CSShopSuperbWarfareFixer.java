@@ -205,6 +205,7 @@ public class CSShopSuperbWarfareFixer implements DataFixer.JsonFixer {
                 continue;
             }
             JsonObject shopData = shopDataElement.getAsJsonObject();
+            CSShopContentV8Rules.removeRetiredItems(shopData);
             for (ItemType type : ItemType.values()) {
                 JsonElement element = shopData.get(type.name());
                 if (element == null) {

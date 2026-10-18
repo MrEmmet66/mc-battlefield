@@ -4,9 +4,11 @@ import com.ptcrys.blockoffensive.map.OvertimeMode;
 import com.phasetranscrystal.fpsmatch.core.map.VoteObj;
 import net.minecraftforge.common.ForgeConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
+import java.util.List;
 
 public class BOConfig {
     public static class Client{
+        public final ForgeConfigSpec.ConfigValue<List<? extends String>> shopFavorites;
         public final ForgeConfigSpec.BooleanValue killMessageHudEnabled;
         public final ForgeConfigSpec.IntValue killMessageHudPosition;
         public final ForgeConfigSpec.IntValue messageShowTime;
@@ -47,6 +49,10 @@ public class BOConfig {
                 ).define("spectatorRosterEnabled", true);
             }
 
+            builder.pop();
+            builder.push("shop");
+            shopFavorites = builder.comment("Favorite shop items, identified by item and variant rather than slot number.")
+                    .defineListAllowEmpty(List.of("favorites"), List.of(), value -> value instanceof String);
             builder.pop();
         }
     }

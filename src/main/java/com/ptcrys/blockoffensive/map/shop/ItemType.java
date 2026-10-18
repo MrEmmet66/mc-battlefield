@@ -1,9 +1,7 @@
 package com.ptcrys.blockoffensive.map.shop;
 
 import com.phasetranscrystal.fpsmatch.FPSMatch;
-import com.phasetranscrystal.fpsmatch.core.FPSMCore;
 import com.phasetranscrystal.fpsmatch.core.shop.INamedType;
-import com.phasetranscrystal.fpsmatch.core.shop.functional.ListenerModule;
 import com.phasetranscrystal.fpsmatch.core.shop.slot.ShopSlot;
 import com.ptcrys.blockoffensive.BlockOffensive;
 import com.ptcrys.blockoffensive.util.GunStacks;
@@ -244,8 +242,6 @@ public enum ItemType implements INamedType {
     private static synchronized List<ShopSlot> getArmorTemplates() {
         if (armorTemplates == null) {
             armorTemplates = new ArrayList<>();
-            addArmorItem(armorTemplates, "bulletproof_armor", 650, "bulletproof_without_helmet");
-            addArmorItem(armorTemplates, "bulletproof_with_helmet", 1000, "bulletproof_with_helmet");
 
             // Superb Warfare ballistic armor (vanilla HEAD/CHEST slots, adds the
             // superbwarfare:bullet_resistance attribute); no NBT or Curios needed.
@@ -275,11 +271,11 @@ public enum ItemType implements INamedType {
                 addC4Item(explosivesTemplates, true, 1100);
                 addSWItem(explosivesTemplates, "detonator", 1, 150);
                 addNonSWGrenades(explosivesTemplates);
-                addSWItem(explosivesTemplates, "rpg", 1, 3000);
-                addSWItem(explosivesTemplates, "rpg_rocket_standard", 1, 400);
-                addSWItem(explosivesTemplates, "rpg_rocket_tbg", 1, 550);
-                addSWItem(explosivesTemplates, "tm_62", 1, 700);
-                addSWItem(explosivesTemplates, "ptkm_1r", 1, 1200);
+                addSWItem(explosivesTemplates, "rpg", 1, 3200);
+                addSWItem(explosivesTemplates, "rpg_rocket_standard", 1, 450);
+                addSWItem(explosivesTemplates, "rpg_rocket_tbg", 1, 650);
+                addSWItem(explosivesTemplates, "tm_62", 1, 800);
+                addSWItem(explosivesTemplates, "ptkm_1r", 1, 1400);
             } else if (ModList.get().isLoaded("csgrenades")) {
                 addItem(explosivesTemplates, "csgrenades", "hegrenade", 300);
                 addItem(explosivesTemplates, "csgrenades", "flashbang", 200);
@@ -301,12 +297,11 @@ public enum ItemType implements INamedType {
     private static synchronized List<ShopSlot> getSupportTemplates() {
         if (supportTemplates == null) {
             supportTemplates = new ArrayList<>();
-            addItem(supportTemplates, "blockoffensive", "bomb_disposal_kit", 400);
             if (swLoaded()) {
-                addSWItem(supportTemplates, "mortar_deployer", 1, 2500);
+                addSWItem(supportTemplates, "mortar_deployer", 1, 2800);
                 addSWItem(supportTemplates, "mortar_shell", 1, 200);
                 addSWItem(supportTemplates, "mortar_shell_smoke", 1, 150);
-                addSWItem(supportTemplates, "drone", 1, 1800);
+                addSWItem(supportTemplates, "drone", 1, 2200);
                 addSWItem(supportTemplates, "monitor", 1, 350);
                 addSWItem(supportTemplates, "artillery_indicator", 1, 600);
                 addSWItem(supportTemplates, "firing_parameters", 1, 200);
@@ -318,6 +313,10 @@ public enum ItemType implements INamedType {
                 addLRConsumable(supportTemplates, "ai2", 600);
                 addLRConsumable(supportTemplates, "surv12", 650);
                 addLRConsumable(supportTemplates, "carfak", 800);
+            }
+            if (swLoaded()) {
+                // Full battery is included; ongoing repairs still consume energy.
+                addSWItem(supportTemplates, "repair_tool", 1, 1000);
             }
         }
         return supportTemplates;
@@ -339,17 +338,18 @@ public enum ItemType implements INamedType {
         if (vehicleTemplates == null) {
             vehicleTemplates = new ArrayList<>();
             if (swLoaded()) {
-                addSWItem(vehicleTemplates, "crowbar", 1, 50);
-                addVehicle(vehicleTemplates, "sodayo_pick_up_hmg", 1500);
-                addVehicle(vehicleTemplates, "tow", 2200);
-                addVehicle(vehicleTemplates, "lav_150", 3500);
-                addVehicle(vehicleTemplates, "lav_25", 4800);
-                addVehicle(vehicleTemplates, "bmp_2", 5500);
-                addVehicle(vehicleTemplates, "bradley", 6000);
-                addVehicle(vehicleTemplates, "plz_05", 6500);
-                addVehicle(vehicleTemplates, "t_90a", 8000);
-                addVehicle(vehicleTemplates, "ztz_99a", 8500);
-                addVehicle(vehicleTemplates, "m_1a_2", 9500);
+                // Deployment and a full energy tank are included in the vehicle price.
+                addSWItem(vehicleTemplates, "crowbar", 1, 100);
+                addVehicle(vehicleTemplates, "sodayo_pick_up_hmg", 1800);
+                addVehicle(vehicleTemplates, "tow", 2400);
+                addVehicle(vehicleTemplates, "lav_150", 4000);
+                addVehicle(vehicleTemplates, "lav_25", 5200);
+                addVehicle(vehicleTemplates, "bmp_2", 6000);
+                addVehicle(vehicleTemplates, "bradley", 6500);
+                addVehicle(vehicleTemplates, "plz_05", 7500);
+                addVehicle(vehicleTemplates, "t_90a", 9000);
+                addVehicle(vehicleTemplates, "ztz_99a", 9500);
+                addVehicle(vehicleTemplates, "m_1a_2", 10500);
             }
         }
         return vehicleTemplates;
@@ -362,8 +362,8 @@ public enum ItemType implements INamedType {
                 addSWItem(vehicleAmmoTemplates, "heavy_ammo", 64, 200);
                 addSWItem(vehicleAmmoTemplates, "rifle_ammo", 64, 250);
                 addSWItem(vehicleAmmoTemplates, "small_shell_gs", 20, 250);
-                addSWItem(vehicleAmmoTemplates, "small_shell_he", 30, 350);
-                addSWItem(vehicleAmmoTemplates, "small_shell_ap", 30, 400);
+                addSWItem(vehicleAmmoTemplates, "small_shell_he", 20, 350);
+                addSWItem(vehicleAmmoTemplates, "small_shell_ap", 20, 400);
                 addSWItem(vehicleAmmoTemplates, "large_shell_gs", 6, 350);
                 addSWItem(vehicleAmmoTemplates, "large_shell_he", 6, 500);
                 addSWItem(vehicleAmmoTemplates, "large_shell_ap", 6, 600);
@@ -467,26 +467,6 @@ public enum ItemType implements INamedType {
         }
     }
 
-    private static void addArmorItem(List<ShopSlot> list, String itemId, int cost, String listenerName) {
-        try {
-            net.minecraft.world.item.Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation("fpsmatch", itemId));
-            if (item == null || item == Items.AIR) {
-                FPSMatch.LOGGER.warn("Missing armor item fpsmatch:{}, skipping from template", itemId);
-                return;
-            }
-            ShopSlot slot = new ShopSlot(new ItemStack(item), cost);
-            ListenerModule lm = FPSMCore.getInstance().getListenerModuleManager().getListenerModule(listenerName);
-            if (lm != null) {
-                slot.addListener(lm);
-            } else {
-                FPSMatch.LOGGER.warn("Listener module '{}' not found for armor item {}", listenerName, itemId);
-            }
-            list.add(slot);
-        } catch (Throwable t) {
-            FPSMatch.LOGGER.warn("Failed to create armor item fpsmatch:{}: {}", itemId, t.toString());
-        }
-    }
-
     private static void addSWItem(List<ShopSlot> list, String itemId, int count, int cost) {
         if (!swLoaded()) {
             list.add(new ShopSlot(ItemStack.EMPTY, cost));
@@ -497,7 +477,11 @@ public enum ItemType implements INamedType {
             if (item == null || item == Items.AIR) {
                 throw new IllegalStateException("missing item superbwarfare:" + itemId);
             }
-            list.add(new ShopSlot(new ItemStack(item, count), cost));
+            ItemStack stack = new ItemStack(item, count);
+            if (itemId.equals("repair_tool")) {
+                stack.getOrCreateTag().putInt("Energy", 100000);
+            }
+            list.add(new ShopSlot(stack, cost));
         } catch (Throwable t) {
             com.phasetranscrystal.fpsmatch.FPSMatch.LOGGER.warn("Failed to create SuperbWarfare shop item {}: {}", itemId, t.toString());
             list.add(new ShopSlot(ItemStack.EMPTY, cost));
